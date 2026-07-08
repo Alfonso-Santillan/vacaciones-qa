@@ -1,0 +1,18 @@
+{
+  "vacations": [],
+  "history": [],
+  "blocked_dates": [
+    {"date":"2025-05-26","reason":"Hot Sale"},
+    {"date":"2025-05-27","reason":"Hot Sale"},
+    {"date":"2025-05-28","reason":"Hot Sale"},
+    {"date":"2025-05-29","reason":"Hot Sale"},
+    {"date":"2025-05-30","reason":"Hot Sale"},
+    {"date":"2025-06-02","reason":"Hot Sale"},
+    {"date":"2025-11-14","reason":"Buen Fin"},
+    {"date":"2025-11-15","reason":"Buen Fin"},
+    {"date":"2025-11-16","reason":"Buen Fin"},
+    {"date":"2025-11-17","reason":"Buen Fin"}
+  ],
+  "last_updated": "2025-07-08",
+  "updated_by": "Jose Alfonso Santillan Rosete"
+}
