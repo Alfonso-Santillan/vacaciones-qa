@@ -285,16 +285,32 @@ function updateSelectedDisplay(){
   else{el.innerHTML=`<strong>${selectedDates.length} dia(s):</strong> ${selectedDates.map(d=>`<span style="background:#1a237e;color:white;padding:1px 6px;border-radius:3px;margin:2px;display:inline-block;font-size:0.85em">${d} <span onclick="toggleDate('${d}')" style="cursor:pointer;margin-left:3px">x</span></span>`).join('')}`;}
 }
 // ===== INIT =====
+function jsonp(url, callback){
+  const id='_cb'+Date.now();
+  window[id]=function(data){callback(data);delete window[id];document.getElementById(id).remove();};
+  const s=document.createElement('script');s.id=id;s.src=url+'&callback='+id;document.body.appendChild(s);
+}
 async function loadData(){
   try{
     const resp=await fetch(SHEETS_API);
     if(resp.ok){
       const rows=await resp.json();
-      VACATIONS=rows.filter(r=>r.date).map(r=>({date:r.date,person:r.person,type:r.type,backup:r.backup}));
-      HISTORY=rows.filter(r=>r.date).map(r=>({requestDate:r.requestDate||'',person:r.person,dates:r.date,type:r.type,backup:r.backup,chapter:r.chapter||'',status:r.status||'Aprobado'}));
-      document.getElementById('syncStatus').innerHTML='<span class="sync-status sync-ok">Conectado a Google Sheets</span>';
+      VACATIONS=rows.filter(r=>r.date&&r.person).map(r=>({date:String(r.date).substring(0,10),person:r.person,type:r.type,backup:r.backup}));
+      HISTORY=rows.filter(r=>r.date&&r.person).map(r=>({requestDate:r.requestDate||'',person:r.person,dates:String(r.date).substring(0,10),type:r.type,backup:r.backup,chapter:r.chapter||'',status:r.status||'Aprobado'}));
+      document.getElementById('syncStatus').innerHTML='<span class="sync-status sync-ok">Conectado</span>';
     }
-  }catch(e){console.warn('Error cargando Sheet:',e);document.getElementById('syncStatus').innerHTML='<span class="sync-status sync-err">Sin conexion</span>';}
+  }catch(e){
+    // Fallback: try JSONP
+    jsonp(SHEETS_API+'?action=read',function(rows){
+      if(rows&&rows.length){
+        VACATIONS=rows.filter(r=>r.date&&r.person).map(r=>({date:String(r.date).substring(0,10),person:r.person,type:r.type,backup:r.backup}));
+        HISTORY=rows.filter(r=>r.date&&r.person).map(r=>({requestDate:r.requestDate||'',person:r.person,dates:String(r.date).substring(0,10),type:r.type,backup:r.backup,chapter:r.chapter||'',status:r.status||'Aprobado'}));
+        document.getElementById('syncStatus').innerHTML='<span class="sync-status sync-ok">Conectado (JSONP)</span>';
+        renderCalendar();
+      }
+    });
+    document.getElementById('syncStatus').innerHTML='<span class="sync-status sync-err">Cargando...</span>';
+  }
   renderCalendar();populateSelects();renderDatePicker();
 }
 document.getElementById('syncStatus').innerHTML='<span class="sync-status sync-ok">Datos OK</span>';
@@ -429,15 +445,15 @@ function saveRequest(){
   const parsed=datesRaw.split(',').map(s=>s.trim()).filter(Boolean).map(d=>parseDate(d)).filter(Boolean);
   if(!parsed.length){alert('No hay fechas seleccionadas');return;}
   const entries=parsed.map(dt=>({date:fmt(dt),person,type,backup,requestDate:fmt(new Date()),chapter:ch?ch.name:'Head Manager',status:'Pendiente'}));
-  // Save to Sheet via GET (workaround for CORS)
+  // Save to Sheet via JSONP (reliable cross-origin)
   const params=encodeURIComponent(JSON.stringify(entries));
-  const img=new Image();
-  img.src=SHEETS_API+'?action=save&data='+params;
-  // Also try with script tag for reliability
-  const script=document.createElement('script');
-  script.src=SHEETS_API+'?action=save&data='+params+'&callback=onSaved';
-  document.body.appendChild(script);
-  // Optimistic update
+  const url=SHEETS_API+'?action=save&data='+params;
+  jsonp(url, function(result){
+    if(result&&result.success){
+      console.log('Guardado en Sheet OK');
+    }
+  });
+  // Optimistic local update
   entries.forEach(e=>{VACATIONS.push(e);HISTORY.push(e);});
   alert(`Guardado: ${parsed.length} dia(s) para ${person}`);
   selectedDates=[];renderDatePicker();renderCalendar();
