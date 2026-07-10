@@ -63,6 +63,18 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f0f2f5;color:#1a1a2e;}
 .validation-ok{background:#e8f5e9;border:1px solid #4caf50;padding:10px;border-radius:5px;}
 .validation-warn{background:#fff3e0;border:1px solid #ff9800;padding:10px;border-radius:5px;}
 .validation-err{background:#ffebee;border:1px solid #f44336;padding:10px;border-radius:5px;}
+.dp-table{width:100%;border-collapse:collapse;font-size:0.8em;}
+.dp-table th{padding:4px;text-align:center;color:#666;font-weight:normal;}
+.dp-table td{padding:4px;text-align:center;cursor:pointer;border-radius:4px;}
+.dp-table td:hover{background:#c5cae9;}
+.dp-table td.dp-selected{background:#1a237e;color:white;font-weight:bold;}
+.dp-table td.dp-blocked{background:#e1bee7;color:#6a1b9a;cursor:not-allowed;font-size:0.7em;}
+.dp-table td.dp-weekend{color:#999;}
+.dp-table td.dp-feriado{background:#fff9c4;color:#b71c1c;cursor:not-allowed;}
+.dp-table td.dp-empty{cursor:default;}
+.dp-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.dp-header button{background:none;border:none;cursor:pointer;font-size:1.2em;padding:2px 8px;}
+.dp-header span{font-weight:bold;font-size:0.9em;}
 .sync-status{font-size:0.75em;padding:3px 8px;border-radius:10px;margin-left:10px;}
 .sync-ok{background:#c8e6c9;color:#2e7d32;}
 .sync-err{background:#ffcdd2;color:#c62828;}
@@ -111,7 +123,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f0f2f5;color:#1a1a2e;}
     <div class="form-row"><label>Solicitante:</label><select id="reqPerson" onchange="updateChapterLead()"><option value="">-- Seleccionar --</option></select></div>
     <div class="form-row"><label>Celula / POD:</label><span id="reqCelula" class="info-text">-</span></div>
     <div class="form-row"><label>Chapter Lead aprobador:</label><span id="reqChapter" class="info-text">-</span></div>
-    <div class="form-row"><label>Fechas solicitadas:</label><input type="text" id="reqDates" placeholder="Ej: 15-Jul, 16-Jul, 17-Jul"></div>
+    <div class="form-row"><label>Fechas solicitadas:</label><div style="flex:1"><div id="selectedDatesDisplay" style="margin-bottom:8px;min-height:24px;font-size:0.85em;color:#1a237e;font-weight:500"></div><div id="datePicker" style="background:#f5f5f5;border-radius:8px;padding:10px;border:1px solid #ddd"></div><input type="hidden" id="reqDates"></div></div>
     <div class="form-row"><label>Tipo:</label><select id="reqType"><option value="V">Vacaciones</option><option value="R">Reposicion</option><option value="F">Dia flotante</option></select></div>
     <div class="form-row"><label>Backup asignado:</label><select id="reqBackup"><option value="">-- Seleccionar --</option></select></div>
     <div class="form-row"><label>Comentarios:</label><textarea id="reqComments" rows="2" placeholder="Opcional"></textarea></div>
@@ -227,9 +239,52 @@ const TEAM = [
   {name:"Gerardo Santos Hernandez",email:"gsantosh@aeromexico.com",celula:"Automation",pod:"N/A",role:"QA Lead",chapter:"Jose Benjamin Mendez Gomez"},
   {name:"Rodolfo de la Rosa Valenzuela",email:"rdelaro@aeromexico.com",celula:"Automation",pod:"N/A",role:"QA Lead",chapter:"Jose Benjamin Mendez Gomez"},
 ];
-const FERIADOS=[{md:"01-01",name:"Anio Nuevo"},{md:"02-03",name:"Constitucion"},{md:"03-17",name:"Benito Juarez"},{md:"04-17",name:"Jueves Santo"},{md:"04-18",name:"Viernes Santo"},{md:"05-01",name:"Dia del Trabajo"},{md:"05-05",name:"Batalla Puebla"},{md:"09-15",name:"Grito Independencia"},{md:"09-16",name:"Independencia"},{md:"11-17",name:"Revolucion"},{md:"12-25",name:"Navidad"},{md:"12-31",name:"Fin de Anio"}];
+const FERIADOS=[{md:"01-01",name:"Año Nuevo"},{md:"02-03",name:"Constitución"},{md:"03-17",name:"Benito Juarez"},{md:"04-17",name:"Jueves Santo"},{md:"04-18",name:"Viernes Santo"},{md:"05-01",name:"Día del Trabajo"},{md:"05-05",name:"Batalla Puebla"},{md:"09-15",name:"Grito Independencia"},{md:"09-16",name:"Grito Independencia"},{md:"11-17",name:"Revolucion"},{md:"12-25",name:"Navidad"},{md:"12-31",name:"Fin de Año"}];
+const RELEASE=[{md:"07-15",name:"Croacia"}]
+// ===== DATE PICKER =====
+let dpMonth=new Date().getMonth(),dpYear=new Date().getFullYear(),selectedDates=[];
+function renderDatePicker(){
+  const mN=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const dN=['Do','Lu','Ma','Mi','Ju','Vi','Sa'];
+  const days=getDaysInMonth(dpYear,dpMonth);
+  const firstDay=new Date(dpYear,dpMonth,1).getDay();
+  let html=`<div class="dp-header"><button onclick="dpNav(-1)">&#9664;</button><span>${mN[dpMonth]} ${dpYear}</span><button onclick="dpNav(1)">&#9654;</button></div>`;
+  html+='<table class="dp-table"><tr>';
+  dN.forEach(d=>{html+=`<th>${d}</th>`;});
+  html+='</tr><tr>';
+  for(let i=0;i<firstDay;i++)html+='<td class="dp-empty"></td>';
+  for(let d=1;d<=days;d++){
+    const date=new Date(dpYear,dpMonth,d);const ds=fmt(date);
+    const isWE=isWeekend(date),isFer=isFeriado(ds),isBl=isBlocked(ds);
+    const isSel=selectedDates.includes(ds);
+    let cls='';let title='';
+    if(isSel)cls='dp-selected';
+    else if(isFer){cls='dp-feriado';title=getFeriadoName(ds);}
+    else if(isBl){const b=BLOCKED_DATES.find(b=>b.date===ds);cls='dp-blocked';title=b?b.reason:'';}
+    else if(isWE)cls='dp-weekend';
+    const canClick=!isFer&&!isBl;
+    html+=`<td class="${cls}" title="${title}" ${canClick?`onclick="toggleDate('${ds}')"`:''}>${d}</td>`;
+    if((firstDay+d)%7===0&&d<days)html+='</tr><tr>';
+  }
+  html+='</tr></table>';
+  document.getElementById('datePicker').innerHTML=html;
+  updateSelectedDisplay();
+}
+function dpNav(delta){dpMonth+=delta;if(dpMonth>11){dpMonth=0;dpYear++;}if(dpMonth<0){dpMonth=11;dpYear--;}renderDatePicker();}
+function toggleDate(ds){
+  const idx=selectedDates.indexOf(ds);
+  if(idx>=0)selectedDates.splice(idx,1);else selectedDates.push(ds);
+  selectedDates.sort();
+  document.getElementById('reqDates').value=selectedDates.map(d=>{const dt=new Date(d+'T12:00:00');const mN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return `${dt.getDate()}-${mN[dt.getMonth()]}`;}).join(', ');
+  renderDatePicker();
+}
+function updateSelectedDisplay(){
+  const el=document.getElementById('selectedDatesDisplay');
+  if(selectedDates.length===0){el.innerHTML='<em style="color:#999">Click en los dias del calendario para seleccionar</em>';}
+  else{el.innerHTML=`<strong>${selectedDates.length} dia(s):</strong> ${selectedDates.map(d=>`<span style="background:#1a237e;color:white;padding:1px 6px;border-radius:3px;margin:2px;display:inline-block;font-size:0.85em">${d} <span onclick="toggleDate('${d}')" style="cursor:pointer;margin-left:3px">x</span></span>`).join('')}`;}
+}
 // ===== INIT (no external fetch needed) =====
-function loadData(){ renderCalendar(); populateSelects(); }
+function loadData(){ renderCalendar(); populateSelects(); renderDatePicker(); }
 document.getElementById('syncStatus').innerHTML='<span class="sync-status sync-ok">Datos OK</span>';
 
 // ===== UTILS =====
@@ -326,14 +381,14 @@ function validateRequest(){
   if(!person)errors.push('Selecciona un solicitante');if(!datesRaw.trim())errors.push('Ingresa fechas');if(!backup)errors.push('Selecciona backup');if(person===backup)errors.push('Backup no puede ser la misma persona');
   if(errors.length){showV('err',errors.join('<br>'));return;}
   const parsed=datesRaw.split(',').map(s=>s.trim()).filter(Boolean).map(d=>parseDate(d)).filter(Boolean);
-  if(!parsed.length){showV('err','Formato invalido. Usa: 15-Jul, 16-Jul');return;}
+  if(!parsed.length){showV('err','Formato inválido. Usa: 15-Jul, 16-Jul');return;}
   for(const dt of parsed){const ds=fmt(dt);
     if(isWeekend(dt))warnings.push(`${ds} es fin de semana`);
     if(isFeriado(ds))errors.push(`${ds} es feriado`);
     if(isBlocked(ds)){const r=BLOCKED_DATES.find(b=>b.date===ds);errors.push(`${ds} bloqueado: ${r?r.reason:''}`);}
     if(getVacationsOnDate(ds).length>=MAX_PER_DAY)warnings.push(`${ds} ya tiene ${MAX_PER_DAY}+ personas`);
     const diff=Math.ceil((dt-new Date().setHours(0,0,0,0))/(86400000));
-    if(diff<MIN_ADVANCE_DAYS&&type==='V')warnings.push(`${ds}: solo ${diff} dias anticipacion`);
+    if(diff<MIN_ADVANCE_DAYS)warnings.push(`${ds}: solo ${diff} dias de anticipacion (min ${MIN_ADVANCE_DAYS})`);
     if(VACATIONS.find(v=>v.date===ds&&v.person===backup))errors.push(`Backup tiene vacaciones el ${ds}`);
   }
   if(errors.length){showV('err','<b>No se puede aprobar:</b><br>'+errors.join('<br>'));document.getElementById('btnEmail').disabled=true;document.getElementById('btnSave').disabled=true;}
@@ -345,23 +400,26 @@ function showV(t,m){document.getElementById('validationResult').innerHTML=`<div 
 function generateEmail(){
   const person=document.getElementById('reqPerson').value,datesRaw=document.getElementById('reqDates').value,type=document.getElementById('reqType').value,backup=document.getElementById('reqBackup').value,comments=document.getElementById('reqComments').value;
   const p=TEAM.find(t=>t.name===person);if(!p)return;
-  const typeLabel=type==='V'?'Vacaciones':type==='R'?'Reposicion':'Dia Flotante';
+  const typeLabel=type==='V'?'Vacaciones':type==='R'?'Reposición':'Día Flotante';
   let approver,to;
   if(p.role==='Chapter Lead'){approver=TEAM.find(t=>t.role==='Head Manager');to=approver.email;}
   else{approver=getChapterLead(person);if(!approver){approver=TEAM.find(t=>t.role==='Head Manager');}to=approver.email;}
   const bkpP=TEAM.find(t=>t.name===backup);let ccList=[HEAD_EMAIL,p.email];if(bkpP)ccList.push(bkpP.email);ccList=[...new Set(ccList.filter(Boolean))];
   const hour=new Date().getHours(),greeting=hour<12?'Buenos dias':hour<18?'Buenas tardes':'Buenas noches';
   const subject=`[Vo.Bo. ${typeLabel}] ${person} - ${datesRaw}`;
-  const body=`${greeting},\n\nPor medio del presente se da Vo.Bo. de la solicitud de ${typeLabel.toLowerCase()} para ${person} los dias ${datesRaw}.\n\nDETALLE:\n- Solicitante: ${person}\n- Celula: ${p.celula}\n- POD: ${p.pod}\n- Fechas: ${datesRaw}\n- Tipo: ${typeLabel}\n- Backup: ${backup}${comments?'\n- Comentarios: '+comments:''}\n\nEl backup asignado sera ${backup}.\n\nSaludos,\n${approver.name}\nQA eCommerce - Aeromexico`;
+  const body=`${greeting},\n\nPor medio del presente se da Vo.Bo. de la solicitud de ${typeLabel.toLowerCase()} para ${person} los dias ${datesRaw}.\n\nDETALLE:\n- Solicitante: ${person}\n- Célula: ${p.celula}\n- POD: ${p.pod}\n- Fechas: ${datesRaw}\n- Tipo: ${typeLabel}\n- Backup: ${backup}${comments?'\n- Comentarios: '+comments:''}\n\nEl backup asignado será ${backup}.\n\nSaludos,\n${approver.name}\nQA eCommerce - Aeromexico`;
   window.open(`mailto:${to}?cc=${encodeURIComponent(ccList.join(','))}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`,'_blank');
 }
 // ===== SAVE (shows instructions since data.json must be edited in repo) =====
 function saveRequest(){
   const person=document.getElementById('reqPerson').value,datesRaw=document.getElementById('reqDates').value,type=document.getElementById('reqType').value,backup=document.getElementById('reqBackup').value;
+  const ch=getChapterLead(person);
   const parsed=datesRaw.split(',').map(s=>s.trim()).filter(Boolean).map(d=>parseDate(d)).filter(Boolean);
-  const entries=parsed.map(dt=>({date:fmt(dt),person,type,backup}));
-  const json=JSON.stringify(entries,null,2);
-  alert(`Para guardar estas vacaciones, agrega lo siguiente al array "vacations" en data.json:\n\n${json}\n\nO pidele a Kiro que lo haga por ti.`);
+  if(!parsed.length){alert('No hay fechas seleccionadas');return;}
+  parsed.forEach(dt=>{const ds=fmt(dt);if(!VACATIONS.find(v=>v.date===ds&&v.person===person))VACATIONS.push({date:ds,person,type,backup});});
+  HISTORY.push({requestDate:fmt(new Date()),person,dates:datesRaw,type,backup,chapter:ch?ch.name:'Head Manager',status:'Pendiente'});
+  alert(`Guardado: ${parsed.length} dia(s) de ${type==='V'?'vacaciones':type==='R'?'reposicion':'dia flotante'} para ${person}.\n\nNota: Para que el equipo vea estos cambios permanentemente, actualiza el index.html en GitHub.`);
+  selectedDates=[];renderDatePicker();renderCalendar();
 }
 // ===== HISTORY/TEAM/RULES =====
 function renderHistory(){
