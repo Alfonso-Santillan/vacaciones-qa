@@ -429,13 +429,18 @@ function saveRequest(){
   const parsed=datesRaw.split(',').map(s=>s.trim()).filter(Boolean).map(d=>parseDate(d)).filter(Boolean);
   if(!parsed.length){alert('No hay fechas seleccionadas');return;}
   const entries=parsed.map(dt=>({date:fmt(dt),person,type,backup,requestDate:fmt(new Date()),chapter:ch?ch.name:'Head Manager',status:'Pendiente'}));
-  // Save to Sheet (use no-cors + redirect follow for Apps Script)
-  fetch(SHEETS_API,{method:'POST',mode:'no-cors',body:JSON.stringify(entries)})
-    .then(()=>{
-      entries.forEach(e=>{VACATIONS.push(e);HISTORY.push(e);});
-      alert(`Guardado: ${parsed.length} dia(s) para ${person}`);
-      selectedDates=[];renderDatePicker();renderCalendar();
-    }).catch(e=>{alert('Error de conexion: '+e.message);});
+  // Save to Sheet via GET (workaround for CORS)
+  const params=encodeURIComponent(JSON.stringify(entries));
+  const img=new Image();
+  img.src=SHEETS_API+'?action=save&data='+params;
+  // Also try with script tag for reliability
+  const script=document.createElement('script');
+  script.src=SHEETS_API+'?action=save&data='+params+'&callback=onSaved';
+  document.body.appendChild(script);
+  // Optimistic update
+  entries.forEach(e=>{VACATIONS.push(e);HISTORY.push(e);});
+  alert(`Guardado: ${parsed.length} dia(s) para ${person}`);
+  selectedDates=[];renderDatePicker();renderCalendar();
 }
 // ===== HISTORY/TEAM/RULES =====
 function renderHistory(){
