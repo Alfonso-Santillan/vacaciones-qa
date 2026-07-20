@@ -162,7 +162,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f0f2f5;color:#1a1a2e;}
 <div class="panel" id="panel-history">
   <h2 style="margin:15px 0">Historial de Solicitudes</h2>
   <button class="btn-sm" onclick="exportHistory()">Exportar CSV</button>
-  <table class="history-table" style="margin-top:10px"><thead><tr><th>Fecha</th><th>Solicitante</th><th>Dias</th><th>Tipo</th><th>Backup</th><th>Chapter</th><th>Estado</th></tr></thead><tbody id="historyBody"></tbody></table>
+  <table class="history-table" style="margin-top:10px"><thead><tr><th>Fecha</th><th>Solicitante</th><th>Dias</th><th>Tipo</th><th>Backup</th><th>Chapter</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="historyBody"></tbody></table>
 </div>
 </div>
 <script>
@@ -462,9 +462,37 @@ function saveRequest(){
   selectedDates=[];renderDatePicker();renderCalendar();
 }
 // ===== HISTORY/TEAM/RULES =====
+function fmtDMY(d){if(!d)return '';const parts=String(d).substring(0,10).split('-');if(parts.length===3)return `${parts[2]}/${parts[1]}/${parts[0]}`;return d;}
 function renderHistory(){
   const tb=document.getElementById('historyBody');tb.innerHTML='';
-  HISTORY.slice().reverse().forEach(h=>{tb.innerHTML+=`<tr><td>${h.requestDate||''}</td><td>${h.person}</td><td>${h.dates}</td><td>${h.type}</td><td>${h.backup}</td><td>${h.chapter||''}</td><td>${h.status||'Aprobado'}</td></tr>`;});
+  HISTORY.slice().reverse().forEach((h,i)=>{
+    const idx=HISTORY.length-1-i;
+    const statusCls=h.status==='Aprobado'?'color:#2e7d32':h.status==='Rechazado'?'color:#c62828':'color:#e65100';
+    tb.innerHTML+=`<tr>
+      <td>${fmtDMY(h.requestDate)}</td>
+      <td>${h.person}</td>
+      <td>${fmtDMY(h.dates)}</td>
+      <td>${h.type==='V'?'Vac':h.type==='R'?'Rep':'Flot'}</td>
+      <td>${h.backup}</td>
+      <td>${h.chapter||''}</td>
+      <td><select onchange="updateHistoryStatus(${idx},this.value)" style="padding:4px;border-radius:4px;border:1px solid #ccc;font-size:0.85em;${statusCls}">
+        <option value="Pendiente" ${(h.status||'Pendiente')==='Pendiente'?'selected':''}>Pendiente</option>
+        <option value="Aprobado" ${h.status==='Aprobado'?'selected':''}>Aprobado</option>
+        <option value="Rechazado" ${h.status==='Rechazado'?'selected':''}>Rechazado</option>
+      </select></td>
+      <td><button onclick="deleteHistoryItem(${idx})" class="btn-sm" style="color:#c62828;font-size:0.8em">Eliminar</button></td>
+    </tr>`;
+  });
+}
+function updateHistoryStatus(idx,status){HISTORY[idx].status=status;renderHistory();}
+function deleteHistoryItem(idx){
+  if(!confirm('Eliminar este registro? Se quitara del calendario.'))return;
+  const h=HISTORY[idx];
+  // Remove from VACATIONS
+  const vi=VACATIONS.findIndex(v=>v.date===h.dates&&v.person===h.person);
+  if(vi>=0)VACATIONS.splice(vi,1);
+  HISTORY.splice(idx,1);
+  renderHistory();renderCalendar();
 }
 function exportHistory(){let csv='Fecha,Solicitante,Fechas,Tipo,Backup,Chapter,Estado\n';HISTORY.forEach(h=>{csv+=`${h.requestDate||''},"${h.person}","${h.dates}",${h.type},"${h.backup}","${h.chapter||''}",${h.status||''}\n`;});const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='vacaciones_export.csv';a.click();}
 function renderTeam(){
