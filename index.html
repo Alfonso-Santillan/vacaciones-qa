@@ -46,7 +46,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f0f2f5;color:#1a1a2e;}
 .cal-table tr:hover td.name-cell{background:#e8eaf6;}
 .cal-v{background:#c8e6c9 !important;color:#2e7d32;font-weight:bold;}
 .cal-r{background:#ffe0b2 !important;color:#e65100;font-weight:bold;}
-.cal-blocked{background:#e1bee7 !important;color:#6a1b9a;}
+.cal-blocked{background:#ff9800 !important;color:#fff;}
 .cal-feriado{background:#fff9c4 !important;color:#b71c1c;}
 .cal-weekend{background:#e8e8e8 !important;color:#333;}
 .cal-table thead th.cal-weekend{background:#1a237e !important;color:#fff;}
@@ -107,11 +107,14 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f0f2f5;color:#1a1a2e;}
     <div><button onclick="changeMonth(-1)" class="btn-sm">&#9664; Anterior</button><span id="calendarMonth" style="font-weight:bold;margin:0 15px;font-size:1.1em"></span><button onclick="changeMonth(1)" class="btn-sm">Siguiente &#9654;</button></div>
   </div>
   <div class="stats-bar" id="monthStats"></div>
-  <div id="calendarGrid" style="overflow-x:auto"></div>
+  <div style="display:flex;gap:15px;align-items:flex-start">
+    <div id="calendarGrid" style="overflow-x:auto;flex:1"></div>
+    <div id="monthVacPanel" style="min-width:220px;max-width:260px;background:white;border-radius:8px;padding:12px;box-shadow:0 2px 6px rgba(0,0,0,0.08);font-size:0.82em;max-height:500px;overflow-y:auto"></div>
+  </div>
   <div style="margin-top:10px;font-size:0.8em">
     <span style="background:#4caf50;color:white;padding:2px 8px;border-radius:3px">V</span> Vacaciones
     <span style="background:#ff9800;color:white;padding:2px 8px;border-radius:3px;margin-left:10px">R</span> Reposicion
-    <span style="background:#ffcdd2;padding:2px 8px;border-radius:3px;margin-left:10px">X</span> Bloqueado
+    <span style="background:#ff9800;color:white;padding:2px 8px;border-radius:3px;margin-left:10px">X</span> Bloqueado
     <span style="background:#fff9c4;color:#b71c1c;padding:2px 8px;border-radius:3px;margin-left:10px">F</span> Feriado
     <span style="background:#e8e8e8;padding:2px 8px;border-radius:3px;margin-left:10px">Fin de semana</span>
     <span style="background:#ffebee;padding:2px 8px;border-radius:3px;margin-left:10px;border:1px solid #d32f2f">Hoy</span>
@@ -354,9 +357,8 @@ function renderCalendar(){
     const isWE=isWeekend(date),isFer=isFeriado(ds),isBl=isBlocked(ds),isT=fmt(new Date())===ds;
     let tt=`${dN[date.getDay()]} ${d}`;if(isFer)tt+=` | ${getFeriadoName(ds)}`;if(isBl){const b=BLOCKED_DATES.find(b=>b.date===ds);tt+=` | ${b.reason}`;}
     let cls='';if(isWE)cls='cal-weekend';if(isFer)cls='cal-feriado';if(isBl)cls='cal-blocked';if(isT)cls+=' cal-today';
-    let extra='';if(isFer)extra=`<br><span class="header-tag fer-tag">${getFeriadoName(ds).substring(0,9)}</span>`;
-    if(isBl){const b=BLOCKED_DATES.find(b=>b.date===ds);extra=`<br><span class="header-tag blk-tag">${b.reason.substring(0,9)}</span>`;}
-    html+=`<th class="${cls}" title="${tt}">${d}<br><span style="font-size:0.7em;font-weight:normal">${dN[date.getDay()]}</span>${extra}</th>`;
+    let extra='';
+    html+=`<th class="${cls}" title="${tt}">${d}<br><span style="font-size:0.7em;font-weight:normal">${dN[date.getDay()]}</span></th>`;
     maxPerDay.push({date:ds,count:getVacationsOnDate(ds).length,isWE,isFer,isBl});
   }
   html+='</tr></thead><tbody>';
@@ -367,10 +369,13 @@ function renderCalendar(){
       const vac=VACATIONS.find(v=>v.date===ds&&v.person===person.name);
       const isWE=isWeekend(date),isFer=isFeriado(ds),isBl=isBlocked(ds),isT=fmt(new Date())===ds;
       let cls='',content='';
+      let title='';
       if(vac){cls=vac.type==='V'?'cal-v':'cal-r';content=vac.type;}
-      else if(isFer)cls='cal-feriado';else if(isBl)cls='cal-blocked';else if(isWE)cls='cal-weekend';
+      else if(isFer){cls='cal-feriado';title=getFeriadoName(ds);}
+      else if(isBl){const b=BLOCKED_DATES.find(b=>b.date===ds);cls='cal-blocked';title=b?b.reason:'';}
+      else if(isWE)cls='cal-weekend';
       if(isT)cls+=' cal-today';
-      html+=`<td class="${cls}">${content}</td>`;
+      html+=`<td class="${cls}" title="${title}">${content}</td>`;
     }
     html+='</tr>';
   }
@@ -388,6 +393,24 @@ function renderCalendar(){
   if(overDays.length)s+=`<span class="stat-chip danger">!! ${overDays.length} dia(s) exceden ${MAX_PER_DAY}</span>`;
   else s+=`<span class="stat-chip" style="background:#e8f5e9;border:1px solid #4caf50">Sin excesos</span>`;
   document.getElementById('monthStats').innerHTML=s;
+  // Vacation panel for this month
+  const monthVacs=VACATIONS.filter(v=>v.date&&v.date.startsWith(mo));
+  let panelHtml='<div style="font-weight:bold;color:#1a237e;margin-bottom:8px;border-bottom:2px solid #1a237e;padding-bottom:4px">Vacaciones este mes</div>';
+  if(monthVacs.length===0){panelHtml+='<p style="color:#999;font-style:italic">Sin vacaciones registradas</p>';}
+  else{
+    const byPerson={};
+    monthVacs.forEach(v=>{if(!byPerson[v.person])byPerson[v.person]={dates:[],backup:v.backup,type:v.type};byPerson[v.person].dates.push(v.date);});
+    Object.keys(byPerson).sort().forEach(person=>{
+      const info=byPerson[person];
+      const dates=info.dates.sort().map(d=>{const p=d.split('-');return `${p[2]}/${p[1]}`;}).join(', ');
+      panelHtml+=`<div style="margin-bottom:10px;padding:8px;background:#f5f5f5;border-radius:6px;border-left:3px solid #4caf50">
+        <div style="font-weight:600">${person.split(' ').slice(0,2).join(' ')}</div>
+        <div style="color:#555;margin-top:2px">Dias: ${dates}</div>
+        <div style="color:#1a237e;margin-top:2px">Backup: <strong>${info.backup?info.backup.split(' ').slice(0,2).join(' '):'Sin asignar'}</strong></div>
+      </div>`;
+    });
+  }
+  document.getElementById('monthVacPanel').innerHTML=panelHtml;
 }
 // ===== FORM =====
 function populateSelects(){
@@ -486,7 +509,7 @@ function renderHistory(){
 }
 function updateHistoryStatus(idx,status){HISTORY[idx].status=status;renderHistory();}
 function deleteHistoryItem(idx){
-  if(!confirm('Eliminar este registro? Se quitara del calendario.'))return;
+  if(!confirm('Eliminar este registro? Se quitará del calendario.'))return;
   const h=HISTORY[idx];
   // Remove from VACATIONS
   const vi=VACATIONS.findIndex(v=>v.date===h.dates&&v.person===h.person);
