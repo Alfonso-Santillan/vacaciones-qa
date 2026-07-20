@@ -47,7 +47,9 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f0f2f5;color:#1a1a2e;}
 .cal-v{background:#c8e6c9 !important;color:#2e7d32;font-weight:bold;}
 .cal-r{background:#ffe0b2 !important;color:#e65100;font-weight:bold;}
 .cal-blocked{background:#ff9800 !important;color:#fff;}
-.cal-feriado{background:#fff9c4 !important;color:#b71c1c;}
+.cal-feriado{background:#c62828 !important;color:#fff;}
+.cal-table thead th.cal-blocked{background:#e65100 !important;color:#fff;}
+.cal-table thead th.cal-feriado{background:#c62828 !important;color:#fff;}
 .cal-weekend{background:#e8e8e8 !important;color:#333;}
 .cal-table thead th.cal-weekend{background:#1a237e !important;color:#fff;}
 .cal-today{background:#ffebee !important;}
@@ -115,7 +117,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f0f2f5;color:#1a1a2e;}
     <span style="background:#4caf50;color:white;padding:2px 8px;border-radius:3px">V</span> Vacaciones
     <span style="background:#ff9800;color:white;padding:2px 8px;border-radius:3px;margin-left:10px">R</span> Reposicion
     <span style="background:#ff9800;color:white;padding:2px 8px;border-radius:3px;margin-left:10px">X</span> Bloqueado
-    <span style="background:#fff9c4;color:#b71c1c;padding:2px 8px;border-radius:3px;margin-left:10px">F</span> Feriado
+    <span style="background:#c62828;color:white;padding:2px 8px;border-radius:3px;margin-left:10px">F</span> Feriado
     <span style="background:#e8e8e8;padding:2px 8px;border-radius:3px;margin-left:10px">Fin de semana</span>
     <span style="background:#ffebee;padding:2px 8px;border-radius:3px;margin-left:10px;border:1px solid #d32f2f">Hoy</span>
   </div>
@@ -402,10 +404,8 @@ function renderCalendar(){
     monthVacs.forEach(v=>{if(!byPerson[v.person])byPerson[v.person]={dates:[],backup:v.backup,type:v.type};byPerson[v.person].dates.push(v.date);});
     Object.keys(byPerson).sort().forEach(person=>{
       const info=byPerson[person];
-      const dates=info.dates.sort().map(d=>{const p=d.split('-');return `${p[2]}/${p[1]}`;}).join(', ');
-      panelHtml+=`<div style="margin-bottom:10px;padding:8px;background:#f5f5f5;border-radius:6px;border-left:3px solid #4caf50">
+      panelHtml+=`<div style="margin-bottom:8px;padding:8px;background:#f5f5f5;border-radius:6px;border-left:3px solid #4caf50">
         <div style="font-weight:600">${person.split(' ').slice(0,2).join(' ')}</div>
-        <div style="color:#555;margin-top:2px">Dias: ${dates}</div>
         <div style="color:#1a237e;margin-top:2px">Backup: <strong>${info.backup?info.backup.split(' ').slice(0,2).join(' '):'Sin asignar'}</strong></div>
       </div>`;
     });
