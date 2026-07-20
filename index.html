@@ -148,11 +148,15 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f0f2f5;color:#1a1a2e;}
       <li>Si excede 4: soporte Domain/Chapter Lead</li>
     </ul></div>
     <div class="rule-card"><h3>Fechas Bloqueadas</h3>
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
+        <input type="date" id="newBlockedDate" style="padding:6px;border:1px solid #ccc;border-radius:4px">
+        <input type="text" id="newBlockedReason" placeholder="Motivo (ej: Hot Sale, Release)" style="padding:6px;border:1px solid #ccc;border-radius:4px;width:200px">
+        <button class="btn-primary" onclick="addBlockedDate()" style="padding:6px 12px;font-size:0.85em">+ Agregar</button>
+      </div>
       <div id="blockedList"></div>
-      <p style="margin-top:10px;font-size:0.8em;color:#666">Para editar fechas bloqueadas, actualizar data.json en el repositorio</p>
     </div>
   </div>
-  <div class="rule-card" style="margin-top:15px"><h3>Feriados MX</h3><div id="feriadosList"></div></div>
+  <div class="rule-card" style="margin-top:15px"><h3>Feriados MX</h3><div id="feriadosList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px"></div></div>
 </div>
 <div class="panel" id="panel-team"><h2 style="margin:15px 0">Equipo QA eCommerce</h2><div id="teamGrid"></div></div>
 <div class="panel" id="panel-history">
@@ -214,7 +218,6 @@ const TEAM = [
   {name:"Jose Roberto Castellanos Vargas",email:"jrcastellanosv@aeromexico.com",celula:"Shopping & Booking",pod:"Booking BE",role:"QA Lead",chapter:"Jessica Lobato Monzalvo"},
   {name:"Luis Alberto Roman Pina",email:"lromanp@aeromexico.com",celula:"Shopping & Booking",pod:"Booking WEB",role:"QA Lead",chapter:"Jessica Lobato Monzalvo"},
   {name:"Adriana Solis Rebolledo",email:"asolisre@aeromexico.com",celula:"User Management",pod:"Profile WEB",role:"QA Lead",chapter:"Jessica Lobato Monzalvo"},
-  {name:"Abigail Vega Cortez",email:"avegaco@aeromexico.com",celula:"User Management",pod:"Payments BE",role:"QA Lead",chapter:"Jessica Lobato Monzalvo"},
   {name:"Carlos Garet Garcia Zaragoza",email:"cgarciaz@aeromexico.com",celula:"User Management",pod:"Profile APP",role:"QA Lead",chapter:"Jessica Lobato Monzalvo"},
   {name:"Ingryd Pamela Sanchez Gonzalez",email:"isanchezgo@aeromexico.com",celula:"User Management",pod:"Profile BE",role:"QA Lead",chapter:"Jessica Lobato Monzalvo"},
   {name:"Lucero Heras Vazquez",email:"lheras@aeromexico.com",celula:"User Management",pod:"Corporate",role:"QA Lead",chapter:"Jessica Lobato Monzalvo"},
@@ -233,7 +236,7 @@ const TEAM = [
   {name:"Violeta Troncoso Reyes",email:"vtroncoso@aeromexico.com",celula:"Reliability",pod:"N/A",role:"QA Lead",chapter:"Jose Benjamin Mendez Gomez"},
   {name:"Yahaira Lizbeth Gutierrez Valenzuela",email:"ygutierrezv@aeromexico.com",celula:"Reliability",pod:"N/A",role:"QA Lead",chapter:"Jose Benjamin Mendez Gomez"},
   {name:"Irma Anet Gudino Martinez",email:"igudino@aeromexico.com",celula:"Reliability",pod:"N/A",role:"QA Lead",chapter:"Jose Benjamin Mendez Gomez"},
-  {name:"Julio Govany Hernandez Villegaz",email:"jghernandezv@aeromexico.com",celula:"Reliability",pod:"N/A",role:"QA Lead",chapter:"Jose Benjamin Mendez Gomez"},
+  {name:"Julio Govany Hernandez Villegaz",email:"jghernandezv@aeromexico.com",celula:"User Management",pod:"Payments BE",role:"QA Lead",chapter:"Jessica Lobato Monzalvo"},
   {name:"Veronica Patricia Alpizar Gonzalez",email:"valpizarg@aeromexico.com",celula:"Reliability",pod:"N/A",role:"QA Lead",chapter:"Jose Benjamin Mendez Gomez"},
   {name:"Alberto Gonzalez Aguilar",email:"agonzalezagu@aeromexico.com",celula:"Automation",pod:"N/A",role:"QA Lead",chapter:"Jose Benjamin Mendez Gomez"},
   {name:"Gibran Quintero Castro",email:"gquinteroc@aeromexico.com",celula:"Automation",pod:"N/A",role:"QA Lead",chapter:"Jose Benjamin Mendez Gomez"},
@@ -241,7 +244,6 @@ const TEAM = [
   {name:"Rodolfo de la Rosa Valenzuela",email:"rdelaro@aeromexico.com",celula:"Automation",pod:"N/A",role:"QA Lead",chapter:"Jose Benjamin Mendez Gomez"},
 ];
 const FERIADOS=[{md:"01-01",name:"Año Nuevo"},{md:"02-03",name:"Constitución"},{md:"03-17",name:"Benito Juarez"},{md:"04-17",name:"Jueves Santo"},{md:"04-18",name:"Viernes Santo"},{md:"05-01",name:"Día del Trabajo"},{md:"05-05",name:"Batalla Puebla"},{md:"09-15",name:"Grito Independencia"},{md:"09-16",name:"Grito Independencia"},{md:"11-17",name:"Revolucion"},{md:"12-25",name:"Navidad"},{md:"12-31",name:"Fin de Año"}];
-const RELEASE=[{md:"07-15",name:"Croacia"}]
 // ===== DATE PICKER =====
 let dpMonth=new Date().getMonth(),dpYear=new Date().getFullYear(),selectedDates=[];
 function renderDatePicker(){
@@ -474,8 +476,50 @@ function renderTeam(){
   html+='</div>';grid.innerHTML=html;
 }
 function renderRules(){
-  document.getElementById('blockedList').innerHTML=BLOCKED_DATES.map(b=>`<span class="stat-chip" style="background:#ffebee">${b.date} - ${b.reason}</span>`).join(' ');
-  document.getElementById('feriadosList').innerHTML=FERIADOS.map(f=>`<span class="stat-chip" style="background:#fff9c4">${f.md} - ${f.name}</span>`).join(' ');
+  // Blocked dates grouped by month
+  const months=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const grouped={};
+  BLOCKED_DATES.sort((a,b)=>a.date.localeCompare(b.date)).forEach(b=>{
+    const m=parseInt(b.date.substring(5,7))-1;
+    if(!grouped[m])grouped[m]=[];
+    grouped[m].push(b);
+  });
+  let html='';
+  Object.keys(grouped).sort((a,b)=>a-b).forEach(m=>{
+    html+=`<div style="margin-bottom:12px"><strong style="color:#1a237e">${months[m]}</strong><div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px">`;
+    grouped[m].forEach((b,i)=>{
+      const day=parseInt(b.date.substring(8,10));
+      html+=`<span style="background:#e1bee7;color:#4a148c;padding:3px 8px;border-radius:4px;font-size:0.8em;display:inline-flex;align-items:center;gap:4px">${day} - ${b.reason} <span onclick="removeBlocked(${BLOCKED_DATES.indexOf(b)})" style="cursor:pointer;color:#c62828;font-weight:bold">x</span></span>`;
+    });
+    html+='</div></div>';
+  });
+  if(!BLOCKED_DATES.length)html='<p style="color:#999;font-size:0.85em">No hay fechas bloqueadas configuradas</p>';
+  document.getElementById('blockedList').innerHTML=html;
+  // Feriados - clean grid
+  document.getElementById('feriadosList').innerHTML=FERIADOS.map(f=>{
+    const parts=f.md.split('-');
+    return `<div style="background:#fff9c4;padding:8px 12px;border-radius:6px;border-left:3px solid #f9a825;font-size:0.85em"><strong>${parseInt(parts[1])} ${months[parseInt(parts[0])-1]}</strong> — ${f.name}</div>`;
+  }).join('');
+}
+function addBlockedDate(){
+  const date=document.getElementById('newBlockedDate').value;
+  const reason=document.getElementById('newBlockedReason').value.trim();
+  if(!date){alert('Selecciona una fecha');return;}
+  if(!reason){alert('Escribe un motivo');return;}
+  BLOCKED_DATES.push({date,reason});
+  document.getElementById('newBlockedDate').value='';
+  document.getElementById('newBlockedReason').value='';
+  renderRules();renderCalendar();renderDatePicker();
+  // Save to Sheet
+  const entry=[{date,person:'BLOCKED',type:'BLK',backup:'',requestDate:fmt(new Date()),chapter:'',status:reason}];
+  const params=encodeURIComponent(JSON.stringify(entry));
+  const url=SHEETS_API+'?action=save&data='+params;
+  jsonp(url,function(){});
+}
+function removeBlocked(idx){
+  if(!confirm('Eliminar fecha bloqueada?'))return;
+  BLOCKED_DATES.splice(idx,1);
+  renderRules();renderCalendar();renderDatePicker();
 }
 // ===== INIT =====
 document.getElementById('currentDate').textContent=new Date().toLocaleDateString('es-MX',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
