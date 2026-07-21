@@ -39,21 +39,23 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f0f2f5;color:#1a1a2e;}
 .history-table th{background:#1a237e;color:white;padding:10px 8px;text-align:left;}
 .history-table td{padding:8px;border-bottom:1px solid #eee;}
 .cal-table{width:100%;border-collapse:collapse;font-size:0.75em;background:white;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);}
-.cal-table th{background:#1a237e;color:white;padding:6px 4px;text-align:center;min-width:28px;position:sticky;top:0;}
+.cal-table th{background:#020C41;color:white;padding:6px 4px;text-align:center;min-width:28px;position:sticky;top:0;}
 .cal-table td{padding:4px;text-align:center;border:1px solid #f0f0f0;}
 .cal-table td.name-cell{text-align:left;padding-left:8px;font-weight:500;white-space:nowrap;position:sticky;left:0;background:white;min-width:250px;z-index:1;}
 .cal-table tr:hover td{background:#f5f5f5;}
 .cal-table tr:hover td.name-cell{background:#e8eaf6;}
+.cal-table tr.total-row td{background:#fff !important;color:#333;}
+.cal-table tr.total-row:hover td{background:#fff !important;}
 .cal-v{background:#c8e6c9 !important;color:#2e7d32;font-weight:bold;}
 .cal-r{background:#ffe0b2 !important;color:#FEE685;font-weight:bold;}
-.cal-blocked{background:#EDE9FE!important;color:#fff;}
-.cal-feriado{background:#FEE685 !important;color:#fff;}
-.cal-table thead th.cal-blocked{background:#EDE9FE!important;color:#fff;}
-.cal-table thead th.cal-feriado{background:#FEE685 !important;color:#fff;}
-.cal-weekend{background:#e8e8e8 !important;color:#333;}
-.cal-table thead th.cal-weekend{background:#1a237e !important;color:#fff;}
-.cal-today{background:#ffcdd2 !important;}
-.cal-table thead th.cal-today{background:#d32f2f !important;color:#fff;}
+.cal-blocked{background:#fff !important;border-left:3px solid #035CF7 !important;color:#333;}
+.cal-feriado{background:#fff !important;border-left:3px solid #E6006A !important;color:#333;}
+.cal-table thead th.cal-blocked{background:#020C41 !important;color:#fff;}
+.cal-table thead th.cal-feriado{background:#020C41 !important;color:#fff;}
+.cal-weekend{background:#f0f0f0 !important;color:#333;}
+.cal-table thead th.cal-weekend{background:#020C41 !important;color:#fff;}
+.cal-today{background:#FD8C92 !important;color:#fff !important;}
+.cal-table thead th.cal-today{background:#FD8C92 !important;color:#fff;}
 .cal-over{background:#ff8a80 !important;color:white;font-weight:bold;}
 .header-tag{display:inline-block;font-size:0.6em;font-weight:normal;padding:1px 3px;border-radius:2px;line-height:1.2;margin-top:2px;}
 .fer-tag{background:#fff9c4;color:#b71c1c;}
@@ -116,10 +118,10 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f0f2f5;color:#1a1a2e;}
   <div style="margin-top:10px;font-size:0.8em">
     <span style="background:#4caf50;color:white;padding:2px 8px;border-radius:3px">V</span> Vacaciones
     <span style="background:#ff9800;color:white;padding:2px 8px;border-radius:3px;margin-left:10px">R</span> Reposicion
-    <span style="background:#9c27b0;color:white;padding:2px 8px;border-radius:3px;margin-left:10px">X</span> Bloqueado
-    <span style="background:#FEE685;color:white;padding:2px 8px;border-radius:3px;margin-left:10px">F</span> Feriado
-    <span style="background:#e8e8e8;padding:2px 8px;border-radius:3px;margin-left:10px">Fin de semana</span>
-    <span style="background:#ffebee;padding:2px 8px;border-radius:3px;margin-left:10px;border:1px solid #d32f2f">Hoy</span>
+    <span style="background:#035CF7;color:white;padding:2px 8px;border-radius:3px;margin-left:10px">X</span> Bloqueado
+    <span style="background:#E6006A;color:white;padding:2px 8px;border-radius:3px;margin-left:10px">F</span> Feriado
+    <span style="background:#f0f0f0;padding:2px 8px;border-radius:3px;margin-left:10px">Fin de semana</span>
+    <span style="background:#FD8C92;color:white;padding:2px 8px;border-radius:3px;margin-left:10px">Hoy</span>
   </div>
 </div>
 <div class="panel" id="panel-request">
@@ -267,11 +269,9 @@ function renderDatePicker(){
     const isSel=selectedDates.includes(ds);
     let cls='';let title='';
     if(isSel)cls='dp-selected';
-    else if(isFer){cls='dp-feriado';title=getFeriadoName(ds);}
-    else if(isBl){const b=BLOCKED_DATES.find(b=>b.date===ds);cls='dp-blocked';title=b?b.reason:'';}
     else if(isWE)cls='dp-weekend';
-    const canClick=!isFer&&!isBl;
-    html+=`<td class="${cls}" title="${title}" ${canClick?`onclick="toggleDate('${ds}')"`:''}>${d}</td>`;
+    const canClick=true;
+    html+=`<td class="${cls}" title="${title}" onclick="toggleDate('${ds}')">${d}</td>`;
     if((firstDay+d)%7===0&&d<days)html+='</tr><tr>';
   }
   html+='</tr></table>';
@@ -298,27 +298,31 @@ function jsonp(url, callback){
   const s=document.createElement('script');s.id=id;s.src=url+'&callback='+id;document.body.appendChild(s);
 }
 async function loadData(){
-  // Render immediately with empty data
+  // Render immediately with hardcoded data
   renderCalendar();populateSelects();renderDatePicker();
   // Then load from Sheet in background
-  try{
-    const resp=await fetch(SHEETS_API);
-    if(resp.ok){
-      const rows=await resp.json();
-      VACATIONS=rows.filter(r=>r.date&&r.person).map(r=>({date:String(r.date).substring(0,10),person:r.person,type:r.type,backup:r.backup}));
-      HISTORY=rows.filter(r=>r.date&&r.person).map(r=>({requestDate:r.requestDate||'',person:r.person,dates:String(r.date).substring(0,10),type:r.type,backup:r.backup,chapter:r.chapter||'',status:r.status||'Aprobado'}));
-      document.getElementById('syncStatus').innerHTML='<span class="sync-status sync-ok">Conectado</span>';
-      renderCalendar();
-    }
-  }catch(e){
-    jsonp(SHEETS_API+'?action=read',function(rows){
-      if(rows&&rows.length){
-        VACATIONS=rows.filter(r=>r.date&&r.person).map(r=>({date:String(r.date).substring(0,10),person:r.person,type:r.type,backup:r.backup}));
-        HISTORY=rows.filter(r=>r.date&&r.person).map(r=>({requestDate:r.requestDate||'',person:r.person,dates:String(r.date).substring(0,10),type:r.type,backup:r.backup,chapter:r.chapter||'',status:r.status||'Aprobado'}));
-        document.getElementById('syncStatus').innerHTML='<span class="sync-status sync-ok">Conectado</span>';
-        renderCalendar();
+  function processRows(rows){
+    if(!rows||!rows.length)return;
+    // Separate BLK rows from vacation rows
+    const blkRows=rows.filter(r=>r.type==='BLK');
+    const vacRows=rows.filter(r=>r.date&&r.person&&r.type!=='BLK');
+    VACATIONS=vacRows.map(r=>({date:String(r.date).substring(0,10),person:r.person,type:r.type,backup:r.backup}));
+    HISTORY=vacRows.map(r=>({requestDate:r.requestDate||'',person:r.person,dates:String(r.date).substring(0,10),type:r.type,backup:r.backup,chapter:r.chapter||'',status:r.status||'Aprobado'}));
+    // Merge BLK rows from Sheet into BLOCKED_DATES (avoid duplicates)
+    blkRows.forEach(r=>{
+      const d=String(r.date).substring(0,10);
+      if(!BLOCKED_DATES.some(b=>b.date===d)){
+        BLOCKED_DATES.push({date:d,reason:r.status||'Bloqueado'});
       }
     });
+    document.getElementById('syncStatus').innerHTML='<span class="sync-status sync-ok">Conectado</span>';
+    renderCalendar();renderRules();
+  }
+  try{
+    const resp=await fetch(SHEETS_API);
+    if(resp.ok){processRows(await resp.json());}
+  }catch(e){
+    jsonp(SHEETS_API+'?action=read',function(rows){processRows(rows);});
   }
 }
 document.getElementById('syncStatus').innerHTML='<span class="sync-status sync-ok">Datos OK</span>';
@@ -381,7 +385,7 @@ function renderCalendar(){
     }
     html+='</tr>';
   }
-  html+='<tr style="border-top:2px solid #1a237e"><td class="name-cell" style="font-weight:bold;color:#1a237e">Total/dia</td>';
+  html+='<tr class="total-row" style="border-top:1px solid #ddd"><td class="name-cell" style="font-weight:bold;color:#333;background:#fff">Total/dia</td>';
   for(let d=1;d<=days;d++){const date=new Date(currentYear,currentMonth,d),ds=fmt(date);const count=getVacationsOnDate(ds).length;const isWE=isWeekend(date);let cls=isWE?'cal-weekend':'';if(count>MAX_PER_DAY)cls='cal-over';else if(count===MAX_PER_DAY)cls='cal-blocked';html+=`<td class="${cls}" style="font-weight:bold">${count||''}</td>`;}
   html+='</tr></tbody></table>';
   document.getElementById('calendarGrid').innerHTML=html;
@@ -390,8 +394,8 @@ function renderCalendar(){
   let ferM=FERIADOS.filter(f=>f.md.startsWith(String(currentMonth+1).padStart(2,'0')+'-'));
   let blkM=BLOCKED_DATES.filter(b=>b.date.startsWith(mo));
   let s=`<span class="stat-chip">Equipo: ${calTeam.length}</span><span class="stat-chip">Vacaciones mes: ${VACATIONS.filter(v=>v.date.startsWith(mo)).length}</span>`;
-  if(ferM.length)s+=`<span class="stat-chip" style="background:#fff9c4;border:1px solid #FEE685">Feriados: ${ferM.map(f=>f.name).join(', ')}</span>`;
-  if(blkM.length)s+=`<span class="stat-chip" style="background:#ffebee;border:1px solid #e53935">Bloqueados: ${[...new Set(blkM.map(b=>b.reason))].join(', ')}</span>`;
+  if(ferM.length)s+=`<span class="stat-chip" style="background:#fff;color:#E6006A;border:1px solid #E6006A">Feriados: ${ferM.map(f=>f.name).join(', ')}</span>`;
+  if(blkM.length)s+=`<span class="stat-chip" style="background:#fff;color:#035CF7;border:1px solid #035CF7">Bloqueados: ${[...new Set(blkM.map(b=>b.reason))].join(', ')}</span>`;
   if(overDays.length)s+=`<span class="stat-chip danger">!! ${overDays.length} dia(s) exceden ${MAX_PER_DAY}</span>`;
   else s+=`<span class="stat-chip" style="background:#e8f5e9;border:1px solid #4caf50">Sin excesos</span>`;
   document.getElementById('monthStats').innerHTML=s;
@@ -569,8 +573,11 @@ function addBlockedDate(){
 }
 function removeBlocked(idx){
   if(!confirm('Eliminar fecha bloqueada?'))return;
-  BLOCKED_DATES.splice(idx,1);
+  const removed=BLOCKED_DATES.splice(idx,1)[0];
   renderRules();renderCalendar();renderDatePicker();
+  // Delete from Sheet
+  const url=SHEETS_API+'?action=deleteBlocked&date='+encodeURIComponent(removed.date);
+  jsonp(url,function(res){if(res&&res.success)console.log('Bloqueado eliminado del Sheet');});
 }
 // ===== INIT =====
 document.getElementById('currentDate').textContent=new Date().toLocaleDateString('es-MX',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
