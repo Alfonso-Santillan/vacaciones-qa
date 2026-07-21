@@ -45,11 +45,11 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f0f2f5;color:#1a1a2e;}
 .cal-table tr:hover td{background:#f5f5f5;}
 .cal-table tr:hover td.name-cell{background:#e8eaf6;}
 .cal-v{background:#c8e6c9 !important;color:#2e7d32;font-weight:bold;}
-.cal-r{background:#ffe0b2 !important;color:#F9A825;font-weight:bold;}
-.cal-blocked{background:#9c27b0 !important;color:#fff;}
-.cal-feriado{background:#F9A825 !important;color:#fff;}
-.cal-table thead th.cal-blocked{background:#7b1fa2 !important;color:#fff;}
-.cal-table thead th.cal-feriado{background:#F9A825 !important;color:#fff;}
+.cal-r{background:#ffe0b2 !important;color:#FEE685;font-weight:bold;}
+.cal-blocked{background:#EDE9FE!important;color:#fff;}
+.cal-feriado{background:#FEE685 !important;color:#fff;}
+.cal-table thead th.cal-blocked{background:#EDE9FE!important;color:#fff;}
+.cal-table thead th.cal-feriado{background:#FEE685 !important;color:#fff;}
 .cal-weekend{background:#e8e8e8 !important;color:#333;}
 .cal-table thead th.cal-weekend{background:#1a237e !important;color:#fff;}
 .cal-today{background:#ffcdd2 !important;}
@@ -117,7 +117,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f0f2f5;color:#1a1a2e;}
     <span style="background:#4caf50;color:white;padding:2px 8px;border-radius:3px">V</span> Vacaciones
     <span style="background:#ff9800;color:white;padding:2px 8px;border-radius:3px;margin-left:10px">R</span> Reposicion
     <span style="background:#9c27b0;color:white;padding:2px 8px;border-radius:3px;margin-left:10px">X</span> Bloqueado
-    <span style="background:#F9A825;color:white;padding:2px 8px;border-radius:3px;margin-left:10px">F</span> Feriado
+    <span style="background:#FEE685;color:white;padding:2px 8px;border-radius:3px;margin-left:10px">F</span> Feriado
     <span style="background:#e8e8e8;padding:2px 8px;border-radius:3px;margin-left:10px">Fin de semana</span>
     <span style="background:#ffebee;padding:2px 8px;border-radius:3px;margin-left:10px;border:1px solid #d32f2f">Hoy</span>
   </div>
@@ -390,7 +390,7 @@ function renderCalendar(){
   let ferM=FERIADOS.filter(f=>f.md.startsWith(String(currentMonth+1).padStart(2,'0')+'-'));
   let blkM=BLOCKED_DATES.filter(b=>b.date.startsWith(mo));
   let s=`<span class="stat-chip">Equipo: ${calTeam.length}</span><span class="stat-chip">Vacaciones mes: ${VACATIONS.filter(v=>v.date.startsWith(mo)).length}</span>`;
-  if(ferM.length)s+=`<span class="stat-chip" style="background:#fff9c4;border:1px solid #f9a825">Feriados: ${ferM.map(f=>f.name).join(', ')}</span>`;
+  if(ferM.length)s+=`<span class="stat-chip" style="background:#fff9c4;border:1px solid #FEE685">Feriados: ${ferM.map(f=>f.name).join(', ')}</span>`;
   if(blkM.length)s+=`<span class="stat-chip" style="background:#ffebee;border:1px solid #e53935">Bloqueados: ${[...new Set(blkM.map(b=>b.reason))].join(', ')}</span>`;
   if(overDays.length)s+=`<span class="stat-chip danger">!! ${overDays.length} dia(s) exceden ${MAX_PER_DAY}</span>`;
   else s+=`<span class="stat-chip" style="background:#e8f5e9;border:1px solid #4caf50">Sin excesos</span>`;
@@ -490,7 +490,7 @@ function renderHistory(){
   const tb=document.getElementById('historyBody');tb.innerHTML='';
   HISTORY.slice().reverse().forEach((h,i)=>{
     const idx=HISTORY.length-1-i;
-    const statusCls=h.status==='Aprobado'?'color:#2e7d32':h.status==='Rechazado'?'color:#c62828':'color:#F9A825';
+    const statusCls=h.status==='Aprobado'?'color:#2e7d32':h.status==='Rechazado'?'color:#c62828':'color:#FEE685';
     tb.innerHTML+=`<tr>
       <td>${fmtDMY(h.requestDate)}</td>
       <td>${h.person}</td>
@@ -519,7 +519,7 @@ function deleteHistoryItem(idx){
 }
 function exportHistory(){let csv='Fecha,Solicitante,Fechas,Tipo,Backup,Chapter,Estado\n';HISTORY.forEach(h=>{csv+=`${h.requestDate||''},"${h.person}","${h.dates}",${h.type},"${h.backup}","${h.chapter||''}",${h.status||''}\n`;});const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='vacaciones_export.csv';a.click();}
 function renderTeam(){
-  const grid=document.getElementById('teamGrid');const colors={'Shopping & Booking':'#1565c0','User Management':'#6a1b9a','Day of Travel':'#2e7d32','My Trips':'#F9A825','Reliability':'#00838f','Automation':'#4e342e'};
+  const grid=document.getElementById('teamGrid');const colors={'Shopping & Booking':'#1565c0','User Management':'#6a1b9a','Day of Travel':'#2e7d32','My Trips':'#FEE685','Reliability':'#00838f','Automation':'#4e342e'};
   let html='<div class="team-grid">';
   TEAM.filter(t=>t.role==='Head Manager').forEach(p=>{html+=`<div class="team-card" style="border-left-color:#c62828"><span class="role">Head Manager</span><h4>${p.name}</h4><div style="font-size:0.82em">${p.email}</div></div>`;});
   TEAM.filter(t=>t.role==='Chapter Lead').forEach(p=>{html+=`<div class="team-card" style="border-left-color:#ff6f00"><span class="role">Chapter Lead</span><h4>${p.name}</h4><div style="font-size:0.82em">${p.email}</div><div style="font-size:0.82em"><b>Celulas:</b> ${p.celula}</div></div>`;});
@@ -549,7 +549,7 @@ function renderRules(){
   // Feriados - clean grid
   document.getElementById('feriadosList').innerHTML=FERIADOS.map(f=>{
     const parts=f.md.split('-');
-    return `<div style="background:#fff9c4;padding:8px 12px;border-radius:6px;border-left:3px solid #f9a825;font-size:0.85em"><strong>${parseInt(parts[1])} ${months[parseInt(parts[0])-1]}</strong> â€” ${f.name}</div>`;
+    return `<div style="background:#fff9c4;padding:8px 12px;border-radius:6px;border-left:3px solid #FEE685;font-size:0.85em"><strong>${parseInt(parts[1])} ${months[parseInt(parts[0])-1]}</strong> â€” ${f.name}</div>`;
   }).join('');
 }
 function addBlockedDate(){
