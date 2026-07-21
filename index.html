@@ -47,7 +47,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f0f2f5;color:#1a1a2e;}
 .cal-table tr.total-row td{background:#fff !important;color:#333;}
 .cal-table tr.total-row:hover td{background:#fff !important;}
 .cal-v{background:#c8e6c9 !important;color:#2e7d32;font-weight:bold;}
-.cal-r{background:#ffe0b2 !important;color:#FEE685;font-weight:bold;}
+.cal-r{background:#FEE390 !important;color:#5d4037;font-weight:bold;}
 .cal-blocked{background:#fff !important;border-left:3px solid #035CF7 !important;color:#333;}
 .cal-feriado{background:#fff !important;border-left:3px solid #E6006A !important;color:#333;}
 .cal-table thead th.cal-blocked{background:#020C41 !important;color:#fff;}
@@ -117,7 +117,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f0f2f5;color:#1a1a2e;}
   </div>
   <div style="margin-top:10px;font-size:0.8em">
     <span style="background:#4caf50;color:white;padding:2px 8px;border-radius:3px">V</span> Vacaciones
-    <span style="background:#ff9800;color:white;padding:2px 8px;border-radius:3px;margin-left:10px">R</span> Reposicion
+    <span style="background:#FEE390;color:#5d4037;padding:2px 8px;border-radius:3px;margin-left:10px">R</span> Reposicion
     <span style="background:#035CF7;color:white;padding:2px 8px;border-radius:3px;margin-left:10px">X</span> Bloqueado
     <span style="background:#E6006A;color:white;padding:2px 8px;border-radius:3px;margin-left:10px">F</span> Feriado
     <span style="background:#f0f0f0;padding:2px 8px;border-radius:3px;margin-left:10px">Fin de semana</span>
@@ -159,6 +159,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f0f2f5;color:#1a1a2e;}
         <input type="date" id="newBlockedDate" style="padding:6px;border:1px solid #ccc;border-radius:4px">
         <input type="text" id="newBlockedReason" placeholder="Motivo (ej: Hot Sale, Release)" style="padding:6px;border:1px solid #ccc;border-radius:4px;width:200px">
         <button class="btn-primary" onclick="addBlockedDate()" style="padding:6px 12px;font-size:0.85em">+ Agregar</button>
+        <button class="btn-sm" onclick="resetBlockedDates()" style="font-size:0.75em;color:#c62828" title="Restaurar fechas bloqueadas originales">Restaurar originales</button>
       </div>
       <div id="blockedList"></div>
     </div>
@@ -183,12 +184,161 @@ let currentYear = new Date().getFullYear();
 
 // ===== DATOS COMPARTIDOS (editar aqui para actualizar vacaciones) =====
 let VACATIONS = [
-  // Ejemplo: {"date":"2026-07-15","person":"Eduardo Colin Hernandez","type":"V","backup":"Violeta Troncoso Reyes"}
+  // === EVELYN VANESSA HERNANDEZ LUNA - Backup: Yahaira Lizbeth Gutierrez Valenzuela ===
+  {date:"2026-04-17",person:"Evelyn Vanessa Hernandez Luna",type:"V",backup:"Yahaira Lizbeth Gutierrez Valenzuela"},
+  {date:"2026-04-20",person:"Evelyn Vanessa Hernandez Luna",type:"V",backup:"Yahaira Lizbeth Gutierrez Valenzuela"},
+  // === ALBERTO GONZALEZ AGUILAR - Backup: TBD ===
+  {date:"2026-04-30",person:"Alberto Gonzalez Aguilar",type:"V",backup:""},
+  // === ARIANA MENDOZA OSORIO - Backup: Violeta Troncoso / Alberto Gonzalez ===
+  {date:"2026-04-30",person:"Ariana Mendoza Osorio",type:"V",backup:"Violeta Troncoso Reyes"},
+  {date:"2026-05-04",person:"Ariana Mendoza Osorio",type:"V",backup:"Alberto Gonzalez Aguilar"},
+  {date:"2026-05-05",person:"Ariana Mendoza Osorio",type:"V",backup:"Alberto Gonzalez Aguilar"},
+  {date:"2026-05-06",person:"Ariana Mendoza Osorio",type:"V",backup:"Alberto Gonzalez Aguilar"},
+  // === JANETH PEREZ PREZA - Backup: Mayra (no en TEAM, se deja vacio) ===
+  {date:"2026-04-22",person:"Janeth Perez Preza",type:"V",backup:""},
+  {date:"2026-04-24",person:"Janeth Perez Preza",type:"V",backup:""},
+  {date:"2026-04-27",person:"Janeth Perez Preza",type:"V",backup:""},
+  {date:"2026-04-28",person:"Janeth Perez Preza",type:"V",backup:""},
+  {date:"2026-04-30",person:"Janeth Perez Preza",type:"V",backup:""},
+  // === IRMA PATRICIA CONTRERAS CEJA - Backup: Eduardo Colin Hernandez ===
+  {date:"2026-04-20",person:"Irma Patricia Contreras Ceja",type:"V",backup:"Eduardo Colin Hernandez"},
+  {date:"2026-04-28",person:"Irma Patricia Contreras Ceja",type:"V",backup:"Eduardo Colin Hernandez"},
+  {date:"2026-04-29",person:"Irma Patricia Contreras Ceja",type:"V",backup:"Eduardo Colin Hernandez"},
+  {date:"2026-04-30",person:"Irma Patricia Contreras Ceja",type:"V",backup:"Eduardo Colin Hernandez"},
+  // === LUIS ALBERTO ROMAN PINA - Backup: Irma Anet Gudino Martinez ===
+  {date:"2026-05-07",person:"Luis Alberto Roman Pina",type:"V",backup:"Irma Anet Gudino Martinez"},
+  {date:"2026-05-08",person:"Luis Alberto Roman Pina",type:"V",backup:"Irma Anet Gudino Martinez"},
+  // === JULIO GOVANY HERNANDEZ VILLEGAZ - Backup: Yahaira Lizbeth Gutierrez Valenzuela ===
+  {date:"2026-05-15",person:"Julio Govany Hernandez Villegaz",type:"R",backup:"Yahaira Lizbeth Gutierrez Valenzuela"},
+  {date:"2026-05-18",person:"Julio Govany Hernandez Villegaz",type:"R",backup:"Yahaira Lizbeth Gutierrez Valenzuela"},
+  // === IRMA ANET GUDINO MARTINEZ - Backup: Violeta Troncoso Reyes ===
+  {date:"2026-05-26",person:"Irma Anet Gudino Martinez",type:"V",backup:"Violeta Troncoso Reyes"},
+  {date:"2026-05-27",person:"Irma Anet Gudino Martinez",type:"V",backup:"Violeta Troncoso Reyes"},
+  {date:"2026-05-28",person:"Irma Anet Gudino Martinez",type:"V",backup:"Violeta Troncoso Reyes"},
+  {date:"2026-05-29",person:"Irma Anet Gudino Martinez",type:"V",backup:"Violeta Troncoso Reyes"},
+  {date:"2026-06-01",person:"Irma Anet Gudino Martinez",type:"V",backup:"Violeta Troncoso Reyes"},
+  // === ALBERTO GONZALEZ AGUILAR - Backup: Raul (no en TEAM) ===
+  {date:"2026-05-15",person:"Alberto Gonzalez Aguilar",type:"V",backup:""},
+  {date:"2026-05-22",person:"Alberto Gonzalez Aguilar",type:"V",backup:""},
+  {date:"2026-05-25",person:"Alberto Gonzalez Aguilar",type:"V",backup:""},
+  {date:"2026-05-29",person:"Alberto Gonzalez Aguilar",type:"V",backup:""},
+  // === EDUARDO COLIN HERNANDEZ - Backup: Mayra (no en TEAM) ===
+  {date:"2026-05-25",person:"Eduardo Colin Hernandez",type:"V",backup:""},
+  {date:"2026-05-26",person:"Eduardo Colin Hernandez",type:"V",backup:""},
+  {date:"2026-05-27",person:"Eduardo Colin Hernandez",type:"V",backup:""},
+  {date:"2026-05-28",person:"Eduardo Colin Hernandez",type:"V",backup:""},
+  {date:"2026-05-29",person:"Eduardo Colin Hernandez",type:"V",backup:""},
+  {date:"2026-06-01",person:"Eduardo Colin Hernandez",type:"V",backup:""},
+  {date:"2026-06-02",person:"Eduardo Colin Hernandez",type:"V",backup:""},
+  // === CRISTIAN MIGUEL HERNANDEZ MEJIA - Backup: Raul (no en TEAM) ===
+  {date:"2026-06-03",person:"Christian Miguel Hernandez Mejia",type:"V",backup:""},
+  // === RAUL MENECES (no en TEAM - se usa nombre aproximado) ===
+  {date:"2026-06-17",person:"Raul Meneces",type:"V",backup:"Alberto Gonzalez Aguilar"},
+  {date:"2026-06-18",person:"Raul Meneces",type:"V",backup:"Alberto Gonzalez Aguilar"},
+  {date:"2026-06-19",person:"Raul Meneces",type:"V",backup:"Christian Miguel Hernandez Mejia"},
+  {date:"2026-06-22",person:"Raul Meneces",type:"V",backup:"Christian Miguel Hernandez Mejia"},
+  {date:"2026-08-25",person:"Raul Meneces",type:"V",backup:"Alberto Gonzalez Aguilar"},
+  {date:"2026-09-28",person:"Raul Meneces",type:"V",backup:"Christian Miguel Hernandez Mejia"},
+  {date:"2026-09-29",person:"Raul Meneces",type:"V",backup:"Christian Miguel Hernandez Mejia"},
+  {date:"2026-09-30",person:"Raul Meneces",type:"V",backup:"Christian Miguel Hernandez Mejia"},
+  // === ADRIANA SOLIS REBOLLEDO - Backup: Irma Anet Gudino Martinez ===
+  {date:"2026-07-03",person:"Adriana Solis Rebolledo",type:"V",backup:"Irma Anet Gudino Martinez"},
+  {date:"2026-07-24",person:"Adriana Solis Rebolledo",type:"V",backup:"Irma Anet Gudino Martinez"},
+  {date:"2026-08-05",person:"Adriana Solis Rebolledo",type:"V",backup:"Irma Anet Gudino Martinez"},
+  {date:"2026-08-06",person:"Adriana Solis Rebolledo",type:"V",backup:"Irma Anet Gudino Martinez"},
+  {date:"2026-08-07",person:"Adriana Solis Rebolledo",type:"V",backup:"Irma Anet Gudino Martinez"},
+  {date:"2026-08-10",person:"Adriana Solis Rebolledo",type:"V",backup:"Irma Anet Gudino Martinez"},
+  {date:"2026-08-11",person:"Adriana Solis Rebolledo",type:"V",backup:"Irma Anet Gudino Martinez"},
+  {date:"2026-08-12",person:"Adriana Solis Rebolledo",type:"V",backup:"Irma Anet Gudino Martinez"},
+  {date:"2026-08-13",person:"Adriana Solis Rebolledo",type:"V",backup:"Irma Anet Gudino Martinez"},
+  {date:"2026-08-14",person:"Adriana Solis Rebolledo",type:"V",backup:"Irma Anet Gudino Martinez"},
+  // === EVELYN VANESSA HERNANDEZ LUNA - Backup: Yahaira/Violeta ===
+  {date:"2026-06-18",person:"Evelyn Vanessa Hernandez Luna",type:"V",backup:"Yahaira Lizbeth Gutierrez Valenzuela"},
+  {date:"2026-07-03",person:"Evelyn Vanessa Hernandez Luna",type:"V",backup:"Violeta Troncoso Reyes"},
+  // === ERIKA LARA MENDEZ - Backup: Violeta Troncoso Reyes ===
+  {date:"2026-06-19",person:"Erika Lara Mendez",type:"V",backup:"Violeta Troncoso Reyes"},
+  {date:"2026-07-06",person:"Erika Lara Mendez",type:"V",backup:"Violeta Troncoso Reyes"},
+  {date:"2026-07-17",person:"Erika Lara Mendez",type:"V",backup:"Violeta Troncoso Reyes"},
+  {date:"2026-07-30",person:"Erika Lara Mendez",type:"V",backup:"Violeta Troncoso Reyes"},
+  {date:"2026-07-31",person:"Erika Lara Mendez",type:"V",backup:"Violeta Troncoso Reyes"},
+  {date:"2026-08-03",person:"Erika Lara Mendez",type:"V",backup:"Violeta Troncoso Reyes"},
+  {date:"2026-08-04",person:"Erika Lara Mendez",type:"V",backup:"Violeta Troncoso Reyes"},
+  {date:"2026-08-05",person:"Erika Lara Mendez",type:"V",backup:"Violeta Troncoso Reyes"},
+  {date:"2026-08-06",person:"Erika Lara Mendez",type:"V",backup:"Violeta Troncoso Reyes"},
+  {date:"2026-08-07",person:"Erika Lara Mendez",type:"V",backup:"Violeta Troncoso Reyes"},
+  {date:"2026-08-10",person:"Erika Lara Mendez",type:"V",backup:"Violeta Troncoso Reyes"},
+  {date:"2026-08-11",person:"Erika Lara Mendez",type:"V",backup:"Violeta Troncoso Reyes"},
+  // === RICARDO ERICK ORTEGA RAMOS - Backup: Veronica Patricia Alpizar Gonzalez ===
+  {date:"2026-06-12",person:"Ricardo Erick Ortega Ramos",type:"V",backup:"Veronica Patricia Alpizar Gonzalez"},
+  {date:"2026-06-19",person:"Ricardo Erick Ortega Ramos",type:"V",backup:"Veronica Patricia Alpizar Gonzalez"},
+  // === JANETH PEREZ PREZA - Backup: Julio Govany ===
+  {date:"2026-06-22",person:"Janeth Perez Preza",type:"V",backup:"Julio Govany Hernandez Villegaz"},
+  {date:"2026-07-03",person:"Janeth Perez Preza",type:"V",backup:"Julio Govany Hernandez Villegaz"},
+  {date:"2026-07-06",person:"Janeth Perez Preza",type:"V",backup:"Julio Govany Hernandez Villegaz"},
+  // === JULIO GOVANY HERNANDEZ VILLEGAZ - Backup: Violeta Troncoso Reyes ===
+  {date:"2026-07-15",person:"Julio Govany Hernandez Villegaz",type:"R",backup:"Violeta Troncoso Reyes"},
+  {date:"2026-07-17",person:"Julio Govany Hernandez Villegaz",type:"R",backup:"Violeta Troncoso Reyes"},
+  // === INGRYD PAMELA SANCHEZ GONZALEZ - Backup: Violeta Troncoso Reyes ===
+  {date:"2026-07-02",person:"Ingryd Pamela Sanchez Gonzalez",type:"V",backup:"Violeta Troncoso Reyes"},
+  {date:"2026-07-03",person:"Ingryd Pamela Sanchez Gonzalez",type:"V",backup:"Violeta Troncoso Reyes"},
+  {date:"2026-07-06",person:"Ingryd Pamela Sanchez Gonzalez",type:"V",backup:"Violeta Troncoso Reyes"},
+  {date:"2026-07-07",person:"Ingryd Pamela Sanchez Gonzalez",type:"V",backup:"Violeta Troncoso Reyes"},
+  {date:"2026-07-08",person:"Ingryd Pamela Sanchez Gonzalez",type:"V",backup:"Violeta Troncoso Reyes"},
+  {date:"2026-07-09",person:"Ingryd Pamela Sanchez Gonzalez",type:"V",backup:"Violeta Troncoso Reyes"},
+  {date:"2026-07-10",person:"Ingryd Pamela Sanchez Gonzalez",type:"V",backup:"Violeta Troncoso Reyes"},
+  // === CARLOS GARET GARCIA ZARAGOZA - Backup: Ingryd Pamela Sanchez Gonzalez ===
+  {date:"2026-08-19",person:"Carlos Garet Garcia Zaragoza",type:"V",backup:"Ingryd Pamela Sanchez Gonzalez"},
+  {date:"2026-08-20",person:"Carlos Garet Garcia Zaragoza",type:"V",backup:"Ingryd Pamela Sanchez Gonzalez"},
+  {date:"2026-08-21",person:"Carlos Garet Garcia Zaragoza",type:"V",backup:"Ingryd Pamela Sanchez Gonzalez"},
+  {date:"2026-08-22",person:"Carlos Garet Garcia Zaragoza",type:"V",backup:"Ingryd Pamela Sanchez Gonzalez"},
+  {date:"2026-08-25",person:"Carlos Garet Garcia Zaragoza",type:"V",backup:"Ingryd Pamela Sanchez Gonzalez"},
+  {date:"2026-08-26",person:"Carlos Garet Garcia Zaragoza",type:"V",backup:"Ingryd Pamela Sanchez Gonzalez"},
+  // === MARIA GABRIELA PEREZ LOPEZ - Backup: Violeta Troncoso / Irma Anet ===
+  {date:"2026-07-24",person:"Maria Gabriela Perez Lopez",type:"V",backup:"Irma Anet Gudino Martinez"},
+  {date:"2026-07-25",person:"Maria Gabriela Perez Lopez",type:"V",backup:"Irma Anet Gudino Martinez"},
+  {date:"2026-08-17",person:"Maria Gabriela Perez Lopez",type:"V",backup:"Violeta Troncoso Reyes"},
+  {date:"2026-08-18",person:"Maria Gabriela Perez Lopez",type:"V",backup:"Violeta Troncoso Reyes"},
+  {date:"2026-08-19",person:"Maria Gabriela Perez Lopez",type:"V",backup:"Violeta Troncoso Reyes"},
+  {date:"2026-08-20",person:"Maria Gabriela Perez Lopez",type:"V",backup:"Violeta Troncoso Reyes"},
+  {date:"2026-09-02",person:"Maria Gabriela Perez Lopez",type:"V",backup:"Violeta Troncoso Reyes"},
+  {date:"2026-09-03",person:"Maria Gabriela Perez Lopez",type:"V",backup:"Violeta Troncoso Reyes"},
+  {date:"2026-09-10",person:"Maria Gabriela Perez Lopez",type:"V",backup:"Violeta Troncoso Reyes"},
+  {date:"2026-09-11",person:"Maria Gabriela Perez Lopez",type:"V",backup:"Violeta Troncoso Reyes"},
+  {date:"2026-09-14",person:"Maria Gabriela Perez Lopez",type:"V",backup:"Violeta Troncoso Reyes"},
+  {date:"2026-09-15",person:"Maria Gabriela Perez Lopez",type:"V",backup:"Violeta Troncoso Reyes"},
+  // === LUCERO HERAS VAZQUEZ - Backup: Yahaira Lizbeth Gutierrez Valenzuela ===
+  {date:"2026-08-17",person:"Lucero Heras Vazquez",type:"V",backup:"Yahaira Lizbeth Gutierrez Valenzuela"},
+  {date:"2026-08-18",person:"Lucero Heras Vazquez",type:"V",backup:"Yahaira Lizbeth Gutierrez Valenzuela"},
+  {date:"2026-08-19",person:"Lucero Heras Vazquez",type:"V",backup:"Yahaira Lizbeth Gutierrez Valenzuela"},
+  {date:"2026-08-20",person:"Lucero Heras Vazquez",type:"V",backup:"Yahaira Lizbeth Gutierrez Valenzuela"},
+  // === YAHAIRA LIZBETH GUTIERREZ VALENZUELA - Backup: Violeta Troncoso Reyes ===
+  {date:"2026-07-22",person:"Yahaira Lizbeth Gutierrez Valenzuela",type:"R",backup:"Violeta Troncoso Reyes"},
+  {date:"2026-08-28",person:"Yahaira Lizbeth Gutierrez Valenzuela",type:"R",backup:"Violeta Troncoso Reyes"},
 ];
 let HISTORY = [
-  // Ejemplo: {"requestDate":"2026-07-08","person":"Eduardo Colin Hernandez","dates":"15-Jul, 16-Jul","type":"V","backup":"Violeta Troncoso Reyes","chapter":"Jose Alfonso Santillan Rosete","status":"Aprobado"}
+  {requestDate:"2026-04-01",person:"Evelyn Vanessa Hernandez Luna",dates:"17-Apr, 20-Apr",type:"V",backup:"Yahaira Lizbeth Gutierrez Valenzuela",chapter:"Jessica Lobato Monzalvo",status:"Aprobado"},
+  {requestDate:"2026-04-01",person:"Alberto Gonzalez Aguilar",dates:"30-Apr",type:"V",backup:"TBD",chapter:"Jose Benjamin Mendez Gomez",status:"Aprobado"},
+  {requestDate:"2026-04-01",person:"Ariana Mendoza Osorio",dates:"30-Apr, 4-May, 5-May, 6-May",type:"V",backup:"Violeta Troncoso Reyes / Alberto Gonzalez Aguilar",chapter:"Jose Alfonso Santillan Rosete",status:"Aprobado"},
+  {requestDate:"2026-03-25",person:"Janeth Perez Preza",dates:"22-Apr, 24-Apr, 27-Apr, 28-Apr, 30-Apr",type:"V",backup:"Mayra Salazar",chapter:"Jose Alfonso Santillan Rosete",status:"Aprobado"},
+  {requestDate:"2026-04-01",person:"Irma Patricia Contreras Ceja",dates:"20-Apr, 28-Apr, 29-Apr, 30-Apr",type:"V",backup:"Eduardo Colin Hernandez",chapter:"Jose Alfonso Santillan Rosete",status:"Aprobado"},
+  {requestDate:"2026-04-28",person:"Luis Alberto Roman Pina",dates:"7-May, 8-May",type:"V",backup:"Irma Anet Gudino Martinez",chapter:"Jessica Lobato Monzalvo",status:"Aprobado"},
+  {requestDate:"2026-05-08",person:"Julio Govany Hernandez Villegaz",dates:"15-May, 18-May",type:"R",backup:"Yahaira Lizbeth Gutierrez Valenzuela",chapter:"Jessica Lobato Monzalvo",status:"Aprobado"},
+  {requestDate:"2026-05-08",person:"Irma Anet Gudino Martinez",dates:"26-May, 27-May, 28-May, 29-May, 1-Jun",type:"V",backup:"Violeta Troncoso Reyes",chapter:"Jose Benjamin Mendez Gomez",status:"Aprobado"},
+  {requestDate:"2026-05-08",person:"Alberto Gonzalez Aguilar",dates:"15-May, 22-May, 25-May, 29-May",type:"V",backup:"Raul Meneces",chapter:"Jose Benjamin Mendez Gomez",status:"Aprobado"},
+  {requestDate:"2026-05-12",person:"Eduardo Colin Hernandez",dates:"25-May, 26-May, 27-May, 28-May, 29-May, 1-Jun, 2-Jun",type:"V",backup:"Mayra Salazar",chapter:"Jose Alfonso Santillan Rosete",status:"Aprobado"},
+  {requestDate:"2026-05-26",person:"Christian Miguel Hernandez Mejia",dates:"3-Jun",type:"V",backup:"Raul Meneces",chapter:"Jose Alfonso Santillan Rosete",status:"Aprobado"},
+  {requestDate:"2026-06-01",person:"Raul Meneces",dates:"17-Jun, 18-Jun, 19-Jun, 22-Jun, 25-Aug, 28-Sep, 29-Sep, 30-Sep",type:"V",backup:"Alberto Gonzalez Aguilar / Christian Miguel Hernandez Mejia",chapter:"Jose Alfonso Santillan Rosete",status:"Aprobado"},
+  {requestDate:"2026-06-02",person:"Adriana Solis Rebolledo",dates:"3-Jul, 24-Jul, 5-Aug, 6-Aug, 7-Aug, 10-Aug, 11-Aug, 12-Aug, 13-Aug, 14-Aug",type:"V",backup:"Irma Anet Gudino Martinez",chapter:"Jessica Lobato Monzalvo",status:"Aprobado"},
+  {requestDate:"2026-06-03",person:"Evelyn Vanessa Hernandez Luna",dates:"18-Jun, 3-Jul",type:"V",backup:"Yahaira Lizbeth Gutierrez Valenzuela / Violeta Troncoso Reyes",chapter:"Jessica Lobato Monzalvo",status:"Aprobado"},
+  {requestDate:"2026-06-03",person:"Abigail Vega Cortez",dates:"14-Jul, 15-Jul, 16-Jul, 17-Jul",type:"V",backup:"Violeta Troncoso Reyes / Julio Govany Hernandez Villegaz",chapter:"Jessica Lobato Monzalvo",status:"Aprobado"},
+  {requestDate:"2026-06-04",person:"Erika Lara Mendez",dates:"19-Jun, 6-Jul, 17-Jul, 30-Jul, 31-Jul, 3-Aug, 4-Aug, 5-Aug, 6-Aug, 7-Aug, 10-Aug, 11-Aug",type:"V",backup:"Violeta Troncoso Reyes",chapter:"Jose Alfonso Santillan Rosete",status:"Aprobado"},
+  {requestDate:"2026-06-04",person:"Ricardo Erick Ortega Ramos",dates:"12-Jun, 19-Jun",type:"V",backup:"Veronica Patricia Alpizar Gonzalez",chapter:"Jose Alfonso Santillan Rosete",status:"Aprobado"},
+  {requestDate:"2026-06-04",person:"Janeth Perez Preza",dates:"22-Jun, 3-Jul, 6-Jul",type:"V",backup:"Julio Govany Hernandez Villegaz",chapter:"Jose Alfonso Santillan Rosete",status:"Aprobado"},
+  {requestDate:"2026-06-15",person:"Julio Govany Hernandez Villegaz",dates:"15-Jul, 17-Jul",type:"R",backup:"Violeta Troncoso Reyes",chapter:"Jessica Lobato Monzalvo",status:"Pendiente"},
+  {requestDate:"2026-06-17",person:"Ingryd Pamela Sanchez Gonzalez",dates:"2-Jul, 3-Jul, 6-Jul, 7-Jul, 8-Jul, 9-Jul, 10-Jul",type:"V",backup:"Violeta Troncoso Reyes",chapter:"Jessica Lobato Monzalvo",status:"Pendiente"},
 ];
 let BLOCKED_DATES = [
+  // === Releases y Post-Release ===
   {date:"2026-07-14",reason:"Release Croacia"},{date:"2026-07-15",reason:"Post-Release"},
   {date:"2026-07-28",reason:"Release Senegal"},{date:"2026-07-29",reason:"Post-Release"},
   {date:"2026-08-11",reason:"Release Camerun"},{date:"2026-08-12",reason:"Post-Release"},
@@ -196,6 +346,7 @@ let BLOCKED_DATES = [
   {date:"2026-09-08",reason:"Release Paraguay"},{date:"2026-09-09",reason:"Post-Release"},
   {date:"2026-09-22",reason:"Release Honduras"},{date:"2026-09-23",reason:"Post-Release"},
   {date:"2026-10-06",reason:"Release Irlanda"},{date:"2026-10-07",reason:"Post-Release"},
+  // === Ventas Especiales ===
   {date:"2026-05-26",reason:"Hot Sale"},{date:"2026-05-27",reason:"Hot Sale"},{date:"2026-05-28",reason:"Hot Sale"},
   {date:"2026-05-29",reason:"Hot Sale"},{date:"2026-05-30",reason:"Hot Sale"},{date:"2026-06-02",reason:"Hot Sale"},
   {date:"2026-07-21",reason:"Venta Azul"},{date:"2026-07-22",reason:"Venta Azul"},{date:"2026-07-23",reason:"Venta Azul"},
@@ -203,16 +354,20 @@ let BLOCKED_DATES = [
   {date:"2026-10-06",reason:"Hot Travel"},{date:"2026-10-07",reason:"Hot Travel"},{date:"2026-10-08",reason:"Hot Travel"},
   {date:"2026-10-09",reason:"Hot Travel"},{date:"2026-10-10",reason:"Hot Travel"},
   {date:"2026-10-20",reason:"World Tour AMEX"},{date:"2026-10-21",reason:"World Tour AMEX"},{date:"2026-10-22",reason:"World Tour AMEX"},
+  // === Buen Fin ===
   {date:"2026-11-10",reason:"Buen Fin Awareness"},{date:"2026-11-11",reason:"Buen Fin Awareness"},
   {date:"2026-11-12",reason:"Buen Fin"},{date:"2026-11-13",reason:"Buen Fin"},{date:"2026-11-14",reason:"Buen Fin"},
   {date:"2026-11-15",reason:"Buen Fin"},{date:"2026-11-16",reason:"Buen Fin"},{date:"2026-11-17",reason:"Buen Fin"},
+  // === Freezes ===
   {date:"2026-11-03",reason:"Soft Freeze"},{date:"2026-11-04",reason:"Soft Freeze"},
   {date:"2026-11-18",reason:"Hard Freeze"},{date:"2026-11-19",reason:"Hard Freeze"},
   {date:"2026-11-20",reason:"Hard Freeze"},{date:"2026-11-21",reason:"Hard Freeze"},
   {date:"2026-12-01",reason:"Soft Freeze"},{date:"2026-12-02",reason:"Soft Freeze"},
+  // === Venta Azul Diciembre ===
   {date:"2026-12-08",reason:"Venta Azul"},{date:"2026-12-09",reason:"Venta Azul"},{date:"2026-12-10",reason:"Venta Azul"},
   {date:"2026-12-11",reason:"Venta Azul"},{date:"2026-12-12",reason:"Venta Azul"}
 ];
+let REMOVED_BLOCKED = [];
 
 // ===== TEAM =====
 const TEAM = [
@@ -308,10 +463,10 @@ async function loadData(){
     const vacRows=rows.filter(r=>r.date&&r.person&&r.type!=='BLK');
     VACATIONS=vacRows.map(r=>({date:String(r.date).substring(0,10),person:r.person,type:r.type,backup:r.backup}));
     HISTORY=vacRows.map(r=>({requestDate:r.requestDate||'',person:r.person,dates:String(r.date).substring(0,10),type:r.type,backup:r.backup,chapter:r.chapter||'',status:r.status||'Aprobado'}));
-    // Merge BLK rows from Sheet into BLOCKED_DATES (avoid duplicates)
+    // Merge BLK rows from Sheet into BLOCKED_DATES (avoid duplicates and respect removals)
     blkRows.forEach(r=>{
       const d=String(r.date).substring(0,10);
-      if(!BLOCKED_DATES.some(b=>b.date===d)){
+      if(!BLOCKED_DATES.some(b=>b.date===d) && !REMOVED_BLOCKED.includes(d)){
         BLOCKED_DATES.push({date:d,reason:r.status||'Bloqueado'});
       }
     });
@@ -556,12 +711,31 @@ function renderRules(){
     return `<div style="background:#fff9c4;padding:8px 12px;border-radius:6px;border-left:3px solid #FEE685;font-size:0.85em"><strong>${parseInt(parts[1])} ${months[parseInt(parts[0])-1]}</strong> â€” ${f.name}</div>`;
   }).join('');
 }
+function saveBlockedToStorage(){
+  localStorage.setItem('blocked_dates',JSON.stringify(BLOCKED_DATES));
+  localStorage.setItem('blocked_dates_removed',JSON.stringify(REMOVED_BLOCKED));
+  localStorage.setItem('blocked_dates_version','2026-v1');
+}
+function loadBlockedFromStorage(){
+  const version=localStorage.getItem('blocked_dates_version');
+  const stored=localStorage.getItem('blocked_dates');
+  const removed=localStorage.getItem('blocked_dates_removed');
+  if(stored && version==='2026-v1'){
+    BLOCKED_DATES=JSON.parse(stored);
+    REMOVED_BLOCKED=removed?JSON.parse(removed):[];
+  } else {
+    REMOVED_BLOCKED=[];
+    saveBlockedToStorage();
+  }
+}
 function addBlockedDate(){
   const date=document.getElementById('newBlockedDate').value;
   const reason=document.getElementById('newBlockedReason').value.trim();
   if(!date){alert('Selecciona una fecha');return;}
   if(!reason){alert('Escribe un motivo');return;}
+  if(BLOCKED_DATES.some(b=>b.date===date)){alert('Esa fecha ya esta bloqueada');return;}
   BLOCKED_DATES.push({date,reason});
+  saveBlockedToStorage();
   document.getElementById('newBlockedDate').value='';
   document.getElementById('newBlockedReason').value='';
   renderRules();renderCalendar();renderDatePicker();
@@ -572,15 +746,25 @@ function addBlockedDate(){
   jsonp(url,function(){});
 }
 function removeBlocked(idx){
-  if(!confirm('Eliminar fecha bloqueada?'))return;
+  if(!confirm('Eliminar fecha bloqueada: '+BLOCKED_DATES[idx].date+' ('+BLOCKED_DATES[idx].reason+')?'))return;
   const removed=BLOCKED_DATES.splice(idx,1)[0];
+  REMOVED_BLOCKED.push(removed.date);
+  saveBlockedToStorage();
   renderRules();renderCalendar();renderDatePicker();
   // Delete from Sheet
   const url=SHEETS_API+'?action=deleteBlocked&date='+encodeURIComponent(removed.date);
   jsonp(url,function(res){if(res&&res.success)console.log('Bloqueado eliminado del Sheet');});
 }
+function resetBlockedDates(){
+  if(!confirm('Esto restaurara las fechas bloqueadas originales. Se perderan los cambios hechos. Continuar?'))return;
+  localStorage.removeItem('blocked_dates');
+  localStorage.removeItem('blocked_dates_removed');
+  localStorage.removeItem('blocked_dates_version');
+  location.reload();
+}
 // ===== INIT =====
 document.getElementById('currentDate').textContent=new Date().toLocaleDateString('es-MX',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+loadBlockedFromStorage();
 loadData();
 </script>
 </body>
