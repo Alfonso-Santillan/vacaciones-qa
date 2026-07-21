@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gestion de Vacaciones QA - eComm Aeromexico</title>
+<title>Gestión de Vacaciones QA - eComm Aeromexico</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f0f2f5;color:#1a1a2e;}
@@ -40,7 +40,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f0f2f5;color:#1a1a2e;}
 .history-table td{padding:8px;border-bottom:1px solid #eee;}
 .cal-table{width:100%;border-collapse:collapse;font-size:0.75em;background:white;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);}
 .cal-table th{background:#020C41;color:white;padding:6px 4px;text-align:center;min-width:28px;position:sticky;top:0;}
-.cal-table td{padding:4px;text-align:center;border:1px solid #f0f0f0;}
+.cal-table td{padding:4px;text-align:center;border:1px solid #ddd;}
 .cal-table td.name-cell{text-align:left;padding-left:8px;font-weight:500;white-space:nowrap;position:sticky;left:0;background:white;min-width:250px;z-index:1;}
 .cal-table tr:hover td{background:#f5f5f5;}
 .cal-table tr:hover td.name-cell{background:#e8eaf6;}
@@ -48,8 +48,8 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f0f2f5;color:#1a1a2e;}
 .cal-table tr.total-row:hover td{background:#fff !important;}
 .cal-v{background:#c8e6c9 !important;color:#2e7d32;font-weight:bold;}
 .cal-r{background:#FEE390 !important;color:#5d4037;font-weight:bold;}
-.cal-blocked{background:#fff !important;border-left:3px solid #035CF7 !important;color:#333;}
-.cal-feriado{background:#fff !important;border-left:3px solid #E6006A !important;color:#333;}
+.cal-blocked{background:#e3f2fd !important;color:#1565c0;}
+.cal-feriado{background:#fce4ec !important;color:#c62828;}
 .cal-table thead th.cal-blocked{background:#020C41 !important;color:#fff;}
 .cal-table thead th.cal-feriado{background:#020C41 !important;color:#fff;}
 .cal-weekend{background:#f0f0f0 !important;color:#333;}
@@ -57,6 +57,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f0f2f5;color:#1a1a2e;}
 .cal-today{background:#FD8C92 !important;color:#fff !important;}
 .cal-table thead th.cal-today{background:#FD8C92 !important;color:#fff;}
 .cal-over{background:#ff8a80 !important;color:white;font-weight:bold;}
+.cal-table tbody td{border:1px solid #ddd !important;}
 .header-tag{display:inline-block;font-size:0.6em;font-weight:normal;padding:1px 3px;border-radius:2px;line-height:1.2;margin-top:2px;}
 .fer-tag{background:#fff9c4;color:#b71c1c;}
 .blk-tag{background:#ffcdd2;color:#c62828;}
@@ -89,7 +90,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f0f2f5;color:#1a1a2e;}
 <div class="header">
   <div style="display:flex;align-items:center;gap:15px">
     <img src="logo.jpg" alt="Logo" style="height:50px;border-radius:8px" onerror="this.style.display='none'">
-    <div><h1>Gestion de Vacaciones QA - eCommerce</h1><div class="user-info">Administrador: Irma Anet Gudino Martinez</div></div>
+    <div><h1>Gestión de Vacaciones QA - eCommerce</h1><div class="user-info">Administrador: Irma Anet Gudiño Martinez</div></div>
   </div>
   <div style="text-align:right;font-size:0.8em;opacity:0.8">
     <div id="currentDate"></div>
@@ -100,6 +101,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f0f2f5;color:#1a1a2e;}
 <div class="nav">
   <button class="active" onclick="showPanel('calendar')">Calendario</button>
   <button onclick="showPanel('request')">Nueva Solicitud</button>
+  <button onclick="showPanel('blocked')">Bloqueados</button>
   <button onclick="showPanel('rules')">Reglas</button>
   <button onclick="showPanel('team')">Equipo</button>
   <button onclick="showPanel('history')">Historial</button>
@@ -117,7 +119,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f0f2f5;color:#1a1a2e;}
   </div>
   <div style="margin-top:10px;font-size:0.8em">
     <span style="background:#4caf50;color:white;padding:2px 8px;border-radius:3px">V</span> Vacaciones
-    <span style="background:#FEE390;color:#5d4037;padding:2px 8px;border-radius:3px;margin-left:10px">R</span> Reposicion
+    <span style="background:#FEE390;color:#5d4037;padding:2px 8px;border-radius:3px;margin-left:10px">R</span> Reposición
     <span style="background:#035CF7;color:white;padding:2px 8px;border-radius:3px;margin-left:10px">X</span> Bloqueado
     <span style="background:#E6006A;color:white;padding:2px 8px;border-radius:3px;margin-left:10px">F</span> Feriado
     <span style="background:#f0f0f0;padding:2px 8px;border-radius:3px;margin-left:10px">Fin de semana</span>
@@ -128,10 +130,10 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f0f2f5;color:#1a1a2e;}
   <h2 style="margin:15px 0">Nueva Solicitud de Vacaciones</h2>
   <div class="form-card">
     <div class="form-row"><label>Solicitante:</label><select id="reqPerson" onchange="updateChapterLead()"><option value="">-- Seleccionar --</option></select></div>
-    <div class="form-row"><label>Celula / POD:</label><span id="reqCelula" class="info-text">-</span></div>
+    <div class="form-row"><label>Célula / POD:</label><span id="reqCelula" class="info-text">-</span></div>
     <div class="form-row"><label>Chapter Lead aprobador:</label><span id="reqChapter" class="info-text">-</span></div>
     <div class="form-row"><label>Fechas solicitadas:</label><div style="flex:1"><div id="selectedDatesDisplay" style="margin-bottom:8px;min-height:24px;font-size:0.85em;color:#1a237e;font-weight:500"></div><div id="datePicker" style="background:#f5f5f5;border-radius:8px;padding:10px;border:1px solid #ddd"></div><input type="hidden" id="reqDates"></div></div>
-    <div class="form-row"><label>Tipo:</label><select id="reqType"><option value="V">Vacaciones</option><option value="R">Reposicion</option><option value="F">Dia flotante</option></select></div>
+    <div class="form-row"><label>Tipo:</label><select id="reqType"><option value="V">Vacaciones</option><option value="R">Reposición</option><option value="F">Día flotante</option></select></div>
     <div class="form-row"><label>Backup asignado:</label><select id="reqBackup"><option value="">-- Seleccionar --</option></select></div>
     <div class="form-row"><label>Comentarios:</label><textarea id="reqComments" rows="2" placeholder="Opcional"></textarea></div>
     <div id="validationResult" style="margin:10px 0"></div>
@@ -142,35 +144,39 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f0f2f5;color:#1a1a2e;}
     </div>
   </div>
 </div>
+<div class="panel" id="panel-blocked">
+  <h2 style="margin:15px 0">Fechas Bloqueadas</h2>
+  <div class="form-card" style="max-width:900px">
+    <p style="font-size:0.85em;color:#555;margin-bottom:15px">Administra las fechas en las que no se autorizan vacaciones (releases, hot sale, buen fin, etc). Los cambios se sincronizan con el Sheet y se reflejan en el calendario.</p>
+    <div style="display:flex;gap:8px;margin-bottom:15px;flex-wrap:wrap;align-items:center">
+      <input type="date" id="newBlockedDate" style="padding:8px;border:1px solid #ccc;border-radius:4px">
+      <input type="text" id="newBlockedReason" placeholder="Motivo (ej: Hot Sale, Release)" style="padding:8px;border:1px solid #ccc;border-radius:4px;width:220px">
+      <button class="btn-primary" onclick="addBlockedDate()">+ Agregar fecha</button>
+      <button class="btn-sm" onclick="resetBlockedDates()" style="margin-left:auto;color:#c62828" title="Restaurar las fechas bloqueadas originales del codigo">Restaurar originales</button>
+    </div>
+    <div id="blockedList"></div>
+  </div>
+</div>
 <div class="panel" id="panel-rules">
-  <h2 style="margin:15px 0">Reglas y Fechas Bloqueadas</h2>
+  <h2 style="margin:15px 0">Reglas</h2>
   <div class="rules-grid">
     <div class="rule-card"><h3>Reglas activas</h3><ul>
-      <li>Maximo <strong>4 personas</strong> por dia</li>
-      <li>Solicitar con al menos <strong>15 dias</strong> de anterioridad</li>
+      <li>Máximo <strong>4 personas</strong> por día</li>
+      <li>Solicitar con al menos <strong>15 días</strong> de anterioridad</li>
       <li>No Vo.Bo. en feriados, hot sale, buen fin, release</li>
-      <li><strong>1-2 dias despues del release</strong> como buffer</li>
+      <li><strong>1-2 días después del release</strong> como buffer</li>
       <li>Vo.Bo. de <strong>Chapter Leads</strong> con CC a Beatriz</li>
-      <li>Dia flotante requiere OK del Chapter</li>
+      <li>Día flotante requiere OK del Chapter</li>
       <li>Si excede 4: soporte Domain/Chapter Lead</li>
     </ul></div>
-    <div class="rule-card"><h3>Fechas Bloqueadas</h3>
-      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
-        <input type="date" id="newBlockedDate" style="padding:6px;border:1px solid #ccc;border-radius:4px">
-        <input type="text" id="newBlockedReason" placeholder="Motivo (ej: Hot Sale, Release)" style="padding:6px;border:1px solid #ccc;border-radius:4px;width:200px">
-        <button class="btn-primary" onclick="addBlockedDate()" style="padding:6px 12px;font-size:0.85em">+ Agregar</button>
-        <button class="btn-sm" onclick="resetBlockedDates()" style="font-size:0.75em;color:#c62828" title="Restaurar fechas bloqueadas originales">Restaurar originales</button>
-      </div>
-      <div id="blockedList"></div>
-    </div>
+    <div class="rule-card"><h3>Feriados MX</h3><div id="feriadosList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px"></div></div>
   </div>
-  <div class="rule-card" style="margin-top:15px"><h3>Feriados MX</h3><div id="feriadosList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px"></div></div>
 </div>
 <div class="panel" id="panel-team"><h2 style="margin:15px 0">Equipo QA eCommerce</h2><div id="teamGrid"></div></div>
 <div class="panel" id="panel-history">
   <h2 style="margin:15px 0">Historial de Solicitudes</h2>
   <button class="btn-sm" onclick="exportHistory()">Exportar CSV</button>
-  <table class="history-table" style="margin-top:10px"><thead><tr><th>Fecha</th><th>Solicitante</th><th>Dias</th><th>Tipo</th><th>Backup</th><th>Chapter</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="historyBody"></tbody></table>
+  <table class="history-table" style="margin-top:10px"><thead><tr><th>Fecha</th><th>Solicitante</th><th>Días</th><th>Tipo</th><th>Backup</th><th>Chapter</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="historyBody"></tbody></table>
 </div>
 </div>
 <script>
@@ -287,12 +293,13 @@ let VACATIONS = [
   {date:"2026-07-09",person:"Ingryd Pamela Sanchez Gonzalez",type:"V",backup:"Violeta Troncoso Reyes"},
   {date:"2026-07-10",person:"Ingryd Pamela Sanchez Gonzalez",type:"V",backup:"Violeta Troncoso Reyes"},
   // === CARLOS GARET GARCIA ZARAGOZA - Backup: Ingryd Pamela Sanchez Gonzalez ===
-  {date:"2026-08-19",person:"Carlos Garet Garcia Zaragoza",type:"V",backup:"Ingryd Pamela Sanchez Gonzalez"},
-  {date:"2026-08-20",person:"Carlos Garet Garcia Zaragoza",type:"V",backup:"Ingryd Pamela Sanchez Gonzalez"},
-  {date:"2026-08-21",person:"Carlos Garet Garcia Zaragoza",type:"V",backup:"Ingryd Pamela Sanchez Gonzalez"},
-  {date:"2026-08-22",person:"Carlos Garet Garcia Zaragoza",type:"V",backup:"Ingryd Pamela Sanchez Gonzalez"},
-  {date:"2026-08-25",person:"Carlos Garet Garcia Zaragoza",type:"V",backup:"Ingryd Pamela Sanchez Gonzalez"},
-  {date:"2026-08-26",person:"Carlos Garet Garcia Zaragoza",type:"V",backup:"Ingryd Pamela Sanchez Gonzalez"},
+  {date:"2026-07-20",person:"Carlos Garet Garcia Zaragoza",type:"V",backup:"Ingryd Pamela Sanchez Gonzalez"},
+  {date:"2026-07-21",person:"Carlos Garet Garcia Zaragoza",type:"V",backup:"Ingryd Pamela Sanchez Gonzalez"},
+  {date:"2026-07-22",person:"Carlos Garet Garcia Zaragoza",type:"V",backup:"Ingryd Pamela Sanchez Gonzalez"},
+  {date:"2026-07-23",person:"Carlos Garet Garcia Zaragoza",type:"V",backup:"Ingryd Pamela Sanchez Gonzalez"},
+  {date:"2026-07-24",person:"Carlos Garet Garcia Zaragoza",type:"V",backup:"Ingryd Pamela Sanchez Gonzalez"},
+  {date:"2026-07-27",person:"Carlos Garet Garcia Zaragoza",type:"V",backup:"Ingryd Pamela Sanchez Gonzalez"},
+  {date:"2026-07-28",person:"Carlos Garet Garcia Zaragoza",type:"V",backup:"Ingryd Pamela Sanchez Gonzalez"},
   // === MARIA GABRIELA PEREZ LOPEZ - Backup: Violeta Troncoso / Irma Anet ===
   {date:"2026-07-24",person:"Maria Gabriela Perez Lopez",type:"V",backup:"Irma Anet Gudino Martinez"},
   {date:"2026-07-25",person:"Maria Gabriela Perez Lopez",type:"V",backup:"Irma Anet Gudino Martinez"},
@@ -405,7 +412,7 @@ const TEAM = [
   {name:"Gerardo Santos Hernandez",email:"gsantosh@aeromexico.com",celula:"Automation",pod:"N/A",role:"QA Lead",chapter:"Jose Benjamin Mendez Gomez"},
   {name:"Rodolfo de la Rosa Valenzuela",email:"rdelaro@aeromexico.com",celula:"Automation",pod:"N/A",role:"QA Lead",chapter:"Jose Benjamin Mendez Gomez"},
 ];
-const FERIADOS=[{md:"01-01",name:"AÃ±o Nuevo"},{md:"02-03",name:"ConstituciÃ³n"},{md:"03-17",name:"Benito Juarez"},{md:"04-17",name:"Jueves Santo"},{md:"04-18",name:"Viernes Santo"},{md:"05-01",name:"DÃ­a del Trabajo"},{md:"05-05",name:"Batalla Puebla"},{md:"09-15",name:"Grito Independencia"},{md:"09-16",name:"Grito Independencia"},{md:"11-17",name:"Revolucion"},{md:"12-25",name:"Navidad"},{md:"12-31",name:"Fin de AÃ±o"}];
+const FERIADOS=[{md:"01-01",name:"Año Nuevo"},{md:"02-03",name:"Constitución"},{md:"03-17",name:"Benito Juárez"},{md:"04-17",name:"Jueves Santo"},{md:"04-18",name:"Viernes Santo"},{md:"05-01",name:"Día del Trabajo"},{md:"05-05",name:"Batalla de Puebla"},{md:"09-15",name:"Grito de Independencia"},{md:"09-16",name:"Independencia de México"},{md:"11-17",name:"Revolución"},{md:"12-25",name:"Navidad"},{md:"12-31",name:"Fin de Año"}];
 // ===== DATE PICKER =====
 let dpMonth=new Date().getMonth(),dpYear=new Date().getFullYear(),selectedDates=[];
 function renderDatePicker(){
@@ -443,8 +450,8 @@ function toggleDate(ds){
 }
 function updateSelectedDisplay(){
   const el=document.getElementById('selectedDatesDisplay');
-  if(selectedDates.length===0){el.innerHTML='<em style="color:#999">Click en los dias del calendario para seleccionar</em>';}
-  else{el.innerHTML=`<strong>${selectedDates.length} dia(s):</strong> ${selectedDates.map(d=>`<span style="background:#1a237e;color:white;padding:1px 6px;border-radius:3px;margin:2px;display:inline-block;font-size:0.85em">${d} <span onclick="toggleDate('${d}')" style="cursor:pointer;margin-left:3px">x</span></span>`).join('')}`;}
+  if(selectedDates.length===0){el.innerHTML='<em style="color:#999">Click en los días del calendario para seleccionar</em>';}
+  else{el.innerHTML=`<strong>${selectedDates.length} día(s):</strong> ${selectedDates.map(d=>`<span style="background:#1a237e;color:white;padding:1px 6px;border-radius:3px;margin:2px;display:inline-block;font-size:0.85em">${d} <span onclick="toggleDate('${d}')" style="cursor:pointer;margin-left:3px">x</span></span>`).join('')}`;}
 }
 // ===== INIT =====
 function jsonp(url, callback){
@@ -454,7 +461,7 @@ function jsonp(url, callback){
 }
 async function loadData(){
   // Render immediately with hardcoded data
-  renderCalendar();populateSelects();renderDatePicker();
+  renderCalendar();renderBlocked();populateSelects();renderDatePicker();
   // Then load from Sheet in background
   function processRows(rows){
     if(!rows||!rows.length)return;
@@ -471,7 +478,7 @@ async function loadData(){
       }
     });
     document.getElementById('syncStatus').innerHTML='<span class="sync-status sync-ok">Conectado</span>';
-    renderCalendar();renderRules();
+    renderCalendar();renderBlocked();renderRules();
   }
   try{
     const resp=await fetch(SHEETS_API);
@@ -502,7 +509,7 @@ function parseDate(str){
 }
 
 // ===== NAV =====
-function showPanel(id){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));document.getElementById('panel-'+id).classList.add('active');event.target.classList.add('active');if(id==='calendar')renderCalendar();if(id==='team')renderTeam();if(id==='history')renderHistory();if(id==='rules')renderRules();if(id==='request')populateSelects();}
+function showPanel(id){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));document.getElementById('panel-'+id).classList.add('active');event.target.classList.add('active');if(id==='calendar')renderCalendar();if(id==='team')renderTeam();if(id==='history')renderHistory();if(id==='rules')renderRules();if(id==='blocked')renderBlocked();if(id==='request')populateSelects();}
 function changeMonth(d){currentMonth+=d;if(currentMonth>11){currentMonth=0;currentYear++;}if(currentMonth<0){currentMonth=11;currentYear--;}renderCalendar();}
 // ===== CALENDAR =====
 function renderCalendar(){
@@ -551,7 +558,7 @@ function renderCalendar(){
   let s=`<span class="stat-chip">Equipo: ${calTeam.length}</span><span class="stat-chip">Vacaciones mes: ${VACATIONS.filter(v=>v.date.startsWith(mo)).length}</span>`;
   if(ferM.length)s+=`<span class="stat-chip" style="background:#fff;color:#E6006A;border:1px solid #E6006A">Feriados: ${ferM.map(f=>f.name).join(', ')}</span>`;
   if(blkM.length)s+=`<span class="stat-chip" style="background:#fff;color:#035CF7;border:1px solid #035CF7">Bloqueados: ${[...new Set(blkM.map(b=>b.reason))].join(', ')}</span>`;
-  if(overDays.length)s+=`<span class="stat-chip danger">!! ${overDays.length} dia(s) exceden ${MAX_PER_DAY}</span>`;
+  if(overDays.length)s+=`<span class="stat-chip danger">!! ${overDays.length} día(s) exceden ${MAX_PER_DAY}</span>`;
   else s+=`<span class="stat-chip" style="background:#e8f5e9;border:1px solid #4caf50">Sin excesos</span>`;
   document.getElementById('monthStats').innerHTML=s;
   // Vacation panel for this month
@@ -594,33 +601,33 @@ function validateRequest(){
   if(!person)errors.push('Selecciona un solicitante');if(!datesRaw.trim())errors.push('Ingresa fechas');if(!backup)errors.push('Selecciona backup');if(person===backup)errors.push('Backup no puede ser la misma persona');
   if(errors.length){showV('err',errors.join('<br>'));return;}
   const parsed=datesRaw.split(',').map(s=>s.trim()).filter(Boolean).map(d=>parseDate(d)).filter(Boolean);
-  if(!parsed.length){showV('err','Formato invÃ¡lido. Usa: 15-Jul, 16-Jul');return;}
+  if(!parsed.length){showV('err','Formato inválido. Usa: 15-Jul, 16-Jul');return;}
   for(const dt of parsed){const ds=fmt(dt);
     if(isWeekend(dt))warnings.push(`${ds} es fin de semana`);
     if(isFeriado(ds))errors.push(`${ds} es feriado`);
     if(isBlocked(ds)){const r=BLOCKED_DATES.find(b=>b.date===ds);errors.push(`${ds} bloqueado: ${r?r.reason:''}`);}
     if(getVacationsOnDate(ds).length>=MAX_PER_DAY)warnings.push(`${ds} ya tiene ${MAX_PER_DAY}+ personas`);
     const diff=Math.ceil((dt-new Date().setHours(0,0,0,0))/(86400000));
-    if(diff<MIN_ADVANCE_DAYS)warnings.push(`${ds}: solo ${diff} dias de anticipacion (min ${MIN_ADVANCE_DAYS})`);
+    if(diff<MIN_ADVANCE_DAYS)warnings.push(`${ds}: solo ${diff} días de anticipación (min ${MIN_ADVANCE_DAYS})`);
     if(VACATIONS.find(v=>v.date===ds&&v.person===backup))errors.push(`Backup tiene vacaciones el ${ds}`);
   }
   if(errors.length){showV('err','<b>No se puede aprobar:</b><br>'+errors.join('<br>'));document.getElementById('btnEmail').disabled=true;document.getElementById('btnSave').disabled=true;}
   else if(warnings.length){showV('warn','<b>Advertencias:</b><br>'+warnings.join('<br>'));document.getElementById('btnEmail').disabled=false;document.getElementById('btnSave').disabled=false;}
-  else{showV('ok','<b>Solicitud valida.</b>');document.getElementById('btnEmail').disabled=false;document.getElementById('btnSave').disabled=false;}
+  else{showV('ok','<b>Solicitud válida.</b>');document.getElementById('btnEmail').disabled=false;document.getElementById('btnSave').disabled=false;}
 }
 function showV(t,m){document.getElementById('validationResult').innerHTML=`<div class="validation-${t}">${m}</div>`;}
 // ===== EMAIL =====
 function generateEmail(){
   const person=document.getElementById('reqPerson').value,datesRaw=document.getElementById('reqDates').value,type=document.getElementById('reqType').value,backup=document.getElementById('reqBackup').value,comments=document.getElementById('reqComments').value;
   const p=TEAM.find(t=>t.name===person);if(!p)return;
-  const typeLabel=type==='V'?'Vacaciones':type==='R'?'ReposiciÃ³n':'DÃ­a Flotante';
+  const typeLabel=type==='V'?'Vacaciones':type==='R'?'Reposición':'Día Flotante';
   let approver,to;
   if(p.role==='Chapter Lead'){approver=TEAM.find(t=>t.role==='Head Manager');to=approver.email;}
   else{approver=getChapterLead(person);if(!approver){approver=TEAM.find(t=>t.role==='Head Manager');}to=approver.email;}
   const bkpP=TEAM.find(t=>t.name===backup);let ccList=[HEAD_EMAIL,p.email];if(bkpP)ccList.push(bkpP.email);ccList=[...new Set(ccList.filter(Boolean))];
-  const hour=new Date().getHours(),greeting=hour<12?'Buenos dias':hour<18?'Buenas tardes':'Buenas noches';
+  const hour=new Date().getHours(),greeting=hour<12?'Buenos días':hour<18?'Buenas tardes':'Buenas noches';
   const subject=`[Vo.Bo. ${typeLabel}] ${person} - ${datesRaw}`;
-  const body=`${greeting},\n\nPor medio del presente se da Vo.Bo. de la solicitud de ${typeLabel.toLowerCase()} para ${person} los dias ${datesRaw}.\n\nDETALLE:\n- Solicitante: ${person}\n- CÃ©lula: ${p.celula}\n- POD: ${p.pod}\n- Fechas: ${datesRaw}\n- Tipo: ${typeLabel}\n- Backup: ${backup}${comments?'\n- Comentarios: '+comments:''}\n\nEl backup asignado serÃ¡ ${backup}.\n\nSaludos,\n${approver.name}\nQA eCommerce - Aeromexico`;
+  const body=`${greeting},\n\nPor medio del presente se da Vo.Bo. de la solicitud de ${typeLabel.toLowerCase()} para ${person} los días ${datesRaw}.\n\nDETALLE:\n- Solicitante: ${person}\n- Célula: ${p.celula}\n- POD: ${p.pod}\n- Fechas: ${datesRaw}\n- Tipo: ${typeLabel}\n- Backup: ${backup}${comments?'\n- Comentarios: '+comments:''}\n\nEl backup asignado será ${backup}.\n\nSaludos,\n${approver.name}\nQA eCommerce - Aeromexico`;
   window.open(`mailto:${to}?cc=${encodeURIComponent(ccList.join(','))}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`,'_blank');
 }
 // ===== SAVE (shows instructions since data.json must be edited in repo) =====
@@ -640,7 +647,7 @@ function saveRequest(){
   });
   // Optimistic local update
   entries.forEach(e=>{VACATIONS.push(e);HISTORY.push(e);});
-  alert(`Guardado: ${parsed.length} dia(s) para ${person}`);
+  alert(`Guardado: ${parsed.length} día(s) para ${person}`);
   selectedDates=[];renderDatePicker();renderCalendar();
 }
 // ===== HISTORY/TEAM/RULES =====
@@ -668,7 +675,7 @@ function renderHistory(){
 }
 function updateHistoryStatus(idx,status){HISTORY[idx].status=status;renderHistory();}
 function deleteHistoryItem(idx){
-  if(!confirm('Eliminar este registro? Se quitarÃ¡ del calendario.'))return;
+  if(!confirm('¿Eliminar este registro? Se quitará del calendario.'))return;
   const h=HISTORY[idx];
   // Remove from VACATIONS
   const vi=VACATIONS.findIndex(v=>v.date===h.dates&&v.person===h.person);
@@ -686,7 +693,13 @@ function renderTeam(){
   html+='</div>';grid.innerHTML=html;
 }
 function renderRules(){
-  // Blocked dates grouped by month
+  const months=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  document.getElementById('feriadosList').innerHTML=FERIADOS.map(f=>{
+    const parts=f.md.split('-');
+    return `<div style="background:#fff9c4;padding:8px 12px;border-radius:6px;border-left:3px solid #FEE685;font-size:0.85em"><strong>${parseInt(parts[1])} ${months[parseInt(parts[0])-1]}</strong> - ${f.name}</div>`;
+  }).join('');
+}
+function renderBlocked(){
   const months=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   const grouped={};
   BLOCKED_DATES.sort((a,b)=>a.date.localeCompare(b.date)).forEach(b=>{
@@ -696,31 +709,27 @@ function renderRules(){
   });
   let html='';
   Object.keys(grouped).sort((a,b)=>a-b).forEach(m=>{
-    html+=`<div style="margin-bottom:12px"><strong style="color:#1a237e">${months[m]}</strong><div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px">`;
-    grouped[m].forEach((b,i)=>{
+    html+=`<div style="margin-bottom:15px;background:#f9f9f9;padding:12px;border-radius:8px"><strong style="color:#1a237e;font-size:1em">${months[m]}</strong> <span style="font-size:0.8em;color:#666">(${grouped[m].length} fechas)</span><div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">`;
+    grouped[m].forEach(b=>{
       const day=parseInt(b.date.substring(8,10));
-      html+=`<span style="background:#e1bee7;color:#4a148c;padding:3px 8px;border-radius:4px;font-size:0.8em;display:inline-flex;align-items:center;gap:4px">${day} - ${b.reason} <span onclick="removeBlocked(${BLOCKED_DATES.indexOf(b)})" style="cursor:pointer;color:#c62828;font-weight:bold">x</span></span>`;
+      const idx=BLOCKED_DATES.indexOf(b);
+      html+=`<span style="background:#e1bee7;color:#4a148c;padding:5px 10px;border-radius:4px;font-size:0.85em;display:inline-flex;align-items:center;gap:6px">${day} - ${b.reason} <span onclick="removeBlocked(${idx})" style="cursor:pointer;color:#c62828;font-weight:bold;font-size:1.1em" title="Eliminar">&times;</span></span>`;
     });
     html+='</div></div>';
   });
   if(!BLOCKED_DATES.length)html='<p style="color:#999;font-size:0.85em">No hay fechas bloqueadas configuradas</p>';
   document.getElementById('blockedList').innerHTML=html;
-  // Feriados - clean grid
-  document.getElementById('feriadosList').innerHTML=FERIADOS.map(f=>{
-    const parts=f.md.split('-');
-    return `<div style="background:#fff9c4;padding:8px 12px;border-radius:6px;border-left:3px solid #FEE685;font-size:0.85em"><strong>${parseInt(parts[1])} ${months[parseInt(parts[0])-1]}</strong> â€” ${f.name}</div>`;
-  }).join('');
 }
 function saveBlockedToStorage(){
   localStorage.setItem('blocked_dates',JSON.stringify(BLOCKED_DATES));
   localStorage.setItem('blocked_dates_removed',JSON.stringify(REMOVED_BLOCKED));
-  localStorage.setItem('blocked_dates_version','2026-v1');
+  localStorage.setItem('blocked_dates_version','2026-v3');
 }
 function loadBlockedFromStorage(){
   const version=localStorage.getItem('blocked_dates_version');
   const stored=localStorage.getItem('blocked_dates');
   const removed=localStorage.getItem('blocked_dates_removed');
-  if(stored && version==='2026-v1'){
+  if(stored && version==='2026-v3'){
     BLOCKED_DATES=JSON.parse(stored);
     REMOVED_BLOCKED=removed?JSON.parse(removed):[];
   } else {
@@ -733,12 +742,12 @@ function addBlockedDate(){
   const reason=document.getElementById('newBlockedReason').value.trim();
   if(!date){alert('Selecciona una fecha');return;}
   if(!reason){alert('Escribe un motivo');return;}
-  if(BLOCKED_DATES.some(b=>b.date===date)){alert('Esa fecha ya esta bloqueada');return;}
+  if(BLOCKED_DATES.some(b=>b.date===date)){alert('Esa fecha ya está bloqueada');return;}
   BLOCKED_DATES.push({date,reason});
   saveBlockedToStorage();
   document.getElementById('newBlockedDate').value='';
   document.getElementById('newBlockedReason').value='';
-  renderRules();renderCalendar();renderDatePicker();
+  renderBlocked();renderCalendar();renderDatePicker();
   // Save to Sheet
   const entry=[{date,person:'BLOCKED',type:'BLK',backup:'',requestDate:fmt(new Date()),chapter:'',status:reason}];
   const params=encodeURIComponent(JSON.stringify(entry));
@@ -746,17 +755,17 @@ function addBlockedDate(){
   jsonp(url,function(){});
 }
 function removeBlocked(idx){
-  if(!confirm('Eliminar fecha bloqueada: '+BLOCKED_DATES[idx].date+' ('+BLOCKED_DATES[idx].reason+')?'))return;
+  if(!confirm('¿Eliminar fecha bloqueada: '+BLOCKED_DATES[idx].date+' ('+BLOCKED_DATES[idx].reason+')?'))return;
   const removed=BLOCKED_DATES.splice(idx,1)[0];
   REMOVED_BLOCKED.push(removed.date);
   saveBlockedToStorage();
-  renderRules();renderCalendar();renderDatePicker();
+  renderBlocked();renderCalendar();renderDatePicker();
   // Delete from Sheet
   const url=SHEETS_API+'?action=deleteBlocked&date='+encodeURIComponent(removed.date);
   jsonp(url,function(res){if(res&&res.success)console.log('Bloqueado eliminado del Sheet');});
 }
 function resetBlockedDates(){
-  if(!confirm('Esto restaurara las fechas bloqueadas originales. Se perderan los cambios hechos. Continuar?'))return;
+  if(!confirm('Esto restaurará las fechas bloqueadas originales. Se perderán los cambios hechos. ¿Continuar?'))return;
   localStorage.removeItem('blocked_dates');
   localStorage.removeItem('blocked_dates_removed');
   localStorage.removeItem('blocked_dates_version');
